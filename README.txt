@@ -1,4 +1,4 @@
-Analyze film reviews and classify them according to expressed feelings.
+Analyzes film reviews and classifies them according to expressed feelings.
   Authors: Aline Weber, Renan Kummer
 
 Final work of "Data Sorting and Research" discipline.
