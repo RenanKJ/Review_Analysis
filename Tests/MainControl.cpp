@@ -11,4 +11,5 @@
  */
 
 //#define MAIN_
-#define STRINGHASHDATA_TEST_
+//#define STRINGHASHDATA_TEST_
+#define AVLTREENODE_TEST_
