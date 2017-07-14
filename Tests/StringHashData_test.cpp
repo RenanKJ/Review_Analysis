@@ -1,7 +1,7 @@
 /**
  * Main function to test StringHashData class.
  *
- *  Created on: July 8th, 2017
+ *  Created on: July 14th, 2017
  *     Authors: Aline Weber
  *              Renan Kummer
  */
