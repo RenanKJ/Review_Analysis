@@ -31,24 +31,6 @@ AvlTreeNode::AvlTreeNode()
 	this->factor_ = 0;  // Initial balancing factor.
 }
 
-AvlTreeNode::~AvlTreeNode()
-{
-	// If both descendants have been removed, it's safe to deallocate memory.
-	if( this->left_ == nullptr && this->right_ == nullptr )
-		delete this;  // TODO: make sure this releases memory allocated for this object.
-	// Otherwise, deallocate memory for descendants first.
-	else
-	{
-		if( this->left_ != nullptr )
-			this->left_->~AvlTreeNode();
-
-		if( this->right_ != nullptr )
-			this->right_->~AvlTreeNode();
-
-		delete this;  // TODO: make sure this releases memory allocated for this object.
-	}
-}
-
 AvlTreeNode* AvlTreeNode::insert( StringHashData *data, SortBy key_order )
 {
 	// New node's key.
@@ -198,7 +180,9 @@ AvlTreeNode* AvlTreeNode::remove( StringHashData *data, SortBy key_order )
 		{
 			// Tree's root is left descendant node.
 			AvlTreeNode *new_root = getDescendants().first;
-			delete this;  // Deallocate memory used for node to be removed.
+
+			// Deallocate memory used for node to be removed.
+			delete this;
 
 			// Return tree's new root.
 			return new_root;
@@ -209,7 +193,9 @@ AvlTreeNode* AvlTreeNode::remove( StringHashData *data, SortBy key_order )
 		{
 			// Tree's root is right descendant node.
 			AvlTreeNode *new_root = getDescendants().second;
-			delete this;  // Deallocate memory used for node to be removed.
+
+			// Deallocate memory used for node to be removed.
+			delete this;
 
 			// Return tree's new root.
 			return new_root;
@@ -218,7 +204,8 @@ AvlTreeNode* AvlTreeNode::remove( StringHashData *data, SortBy key_order )
 		// If no descendants exist:
 		else
 		{
-			delete this;  // Deallocate memory used for node to be removed.
+			// Deallocate memory used for node to be removed.
+			delete this;
 
 			// Return null pointer (empty node).
 			return nullptr;
@@ -350,36 +337,18 @@ StringHashData* AvlTreeNode::getData()
 	return this->data_;
 }
 
-bool AvlTreeNode::setLeftDescendant( AvlTreeNode *left_node )
+void AvlTreeNode::setLeftDescendant( AvlTreeNode *left_node )
 {
-	// If left descendant isn't set:
-	if( getDescendants().first == nullptr )
-	{
-		// Assign left_node argument to node's left descendant.
-		this->left_ = left_node;
 
-		// Indicate that left descendant was set.
-		return true;
-	}
-	else
-		// Indicate that left descendant was already set.
-		return false;
+	// Assign left_node argument to node's left descendant.
+	this->left_ = left_node;
 }
 
-bool AvlTreeNode::setRightDescendant( AvlTreeNode *right_node )
+void AvlTreeNode::setRightDescendant( AvlTreeNode *right_node )
 {
-	// If right descendant isn't set:
-	if( getDescendants().second == nullptr )
-	{
-		// Assign right_node argument to node's right descendant.
-		this->right_ = right_node;
+	// Assign right_node argument to node's right descendant.
+	this->right_ = right_node;
 
-		// Indicate that right descendant was set.
-		return true;
-	}
-	else
-		// Indicate that right descendant was already set.
-		return false;
 }
 
 std::pair< AvlTreeNode*, AvlTreeNode* > AvlTreeNode::getDescendants()
@@ -463,29 +432,28 @@ void AvlTreeNode::updateFactor()
 		setFactor( left_node->getHeight() - right_node->getHeight() );
 	}
 	// If only left descendant exists:
-	if( left_node != nullptr )
+	else if( left_node != nullptr )
 		setFactor( left_node->getHeight() );
 	// If only right descendant exists:
-	if( right_node != nullptr )
+	else if( right_node != nullptr )
 		setFactor( 0 - right_node->getHeight() );
 }
 
 AvlTreeNode* AvlTreeNode::findGreatestKey()
 {
 	// Pointer to search for node with greatest key.
-	AvlTreeNode *current_node = ( getDescendants().second != nullptr ) ?
-										getDescendants().second : getDescendants().first;
+	AvlTreeNode *greatest_node = this;
 
-	// Descendant node with the greatest key.
-	AvlTreeNode *greatest_node;
+	// Indicate if greatest node has been found.
+	bool is_found = false;
 
 	// Search for descendant node with greatest key.
-	while( current_node != nullptr )
+	while( !is_found )
 	{
-		// Greatest key so far.
-		greatest_node = current_node;
-		// Assign either a node with greater key or null pointer to current_node.
-		current_node = current_node->getDescendants().second;
+		if( getDescendants().second != nullptr )
+			greatest_node = greatest_node->getDescendants().second;
+		else
+			is_found = true;
 	}
 
 	// Return descendant nodes's greatest key.

@@ -28,11 +28,6 @@ public:
 	AvlTreeNode();
 
 	/**
-	 * Destructor: deallocates dynamic memory used.
-	 */
-	~AvlTreeNode();
-
-	/**
 	 * Insert data into the AVL tree, returning pointer to tree's root.
 	 *  @param data Hash table's satellite data to be inserted in AVL tree of rankings.
 	 *  @return Pointer to AVL tree's root.
@@ -84,14 +79,14 @@ public:
 	 *  @param Node's left descendant.
 	 *  @return True if node was set, false if there's already a left descendant.
 	 */
-	bool setLeftDescendant( AvlTreeNode *left_node );
+	void setLeftDescendant( AvlTreeNode *left_node );
 
 	/**
 	 * Set node's right descendant.
 	 *  @param Node's right descendant.
 	 *  @return True if node was set, false if there's already a right descendant.
 	 */
-	bool setRightDescendant( AvlTreeNode *right_node );
+	void setRightDescendant( AvlTreeNode *right_node );
 
 	/**
 	 * Get node's left and right descendants.
