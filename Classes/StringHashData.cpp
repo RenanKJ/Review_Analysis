@@ -1,13 +1,13 @@
 /**
- * Class HashData member-function definitions.
+ * Class StringHashData member-function definitions.
  *
- *  Created on: July 8th, 2017
+ *  Created on: July 14th, 2017
  *     Authors: Aline Weber
  *              Renan Kummer
  */
 
 // Libraries:
-#include "../Classes/StringHashData.h"
+#include "StringHashData.h"
 
 using namespace std;
 

@@ -1,4 +1,4 @@
-/* Definitions of StringHashData class - satellite data for StringHash's hash table.
+/* Definitions of StringHashData class - satellite data for StringHashTable class.
  *
  *  Created on: July 7th, 2017
  *     Authors: Aline Weber
