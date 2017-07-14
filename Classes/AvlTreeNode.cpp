@@ -296,8 +296,8 @@ bool AvlTreeNode::search( StringHashData *data, SortBy key_order )
 
 bool AvlTreeNode::setKey( double key )
 {
-	// If key is valid (0.0 ~ 4.0 ):
-	if( key >= 0.0 && key <= 4.0 )
+	// If key is valid (non-negative):
+	if( key >= 0.0 )
 	{
 		// Assign key argument to node's key.
 		this->key_ = key;
