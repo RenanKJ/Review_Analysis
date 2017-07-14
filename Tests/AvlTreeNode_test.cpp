@@ -14,7 +14,6 @@
 #include <iostream>
 #include <stack>
 #include "../Classes/AvlTreeNode.h"
-#include "../Classes/StringHashData.h"
 
 using namespace std;
 
@@ -37,11 +36,11 @@ int main()
 	cout << "> AvlTreeNode : main()" << endl;
 
 	// Data to be inserted.
-	StringHashData d0( "d0", 3 );
-	StringHashData d1( "d1", 4 );
-	StringHashData d2( "d2", 0 );
-	StringHashData d3( "d3", 1 );
-	StringHashData d4( "d4", 2 );
+	StringHashData d0( "d0", 3.52 );
+	StringHashData d1( "d1", 3.24 );
+	StringHashData d2( "d2", 3.52 );
+	StringHashData d3( "d3", 3.24 );
+	StringHashData d4( "d4", 3.521 );
 
 	// Test constructor.
 	AvlTreeNode *root = new AvlTreeNode;
@@ -55,7 +54,7 @@ int main()
 
 	// Print keys using left-right-center traversal.
 	cout << "root->insert(...):\n";
-	//printAvlTree( root );
+	printAvlTree( root );
 
 	// search() method.
 	cout << "\n\nroot->search(...):\n"
@@ -67,25 +66,28 @@ int main()
 			<< "\nd4 = " << root->search( &d4, SCORE )
 			<< endl;
 
-	/*// remove() method.
+	// remove() method.
 	root = root->remove( &d4, SCORE );
 	root = root->remove( &d1, SCORE );
 	root = root->remove( &d0, SCORE );
 	root = root->remove( &d2, SCORE );
 	root = root->remove( &d3, SCORE );
 
-	cout << "\n\nroot->remove(...):\n";
+	cout << "\nroot->remove(...):\n";
 
 	// Check if keys were removed.
 	if( root == nullptr )
 		cout << "All data removed." << endl;
 	else
+	{
 		cout << "d0 = " << root->search( &d0, SCORE )
 				<< "\nd1 = " << root->search( &d1, SCORE )
 				<< "\nd2 = " << root->search( &d2, SCORE )
 				<< "\nd3 = " << root->search( &d3, SCORE )
 				<< "\nd4 = " << root->search( &d4, SCORE )
-				<< endl;*/
+				<< endl;
+	}
+
 
 	cout << "> AvlTreeNode : end of main()" << endl;
 }
