@@ -70,6 +70,18 @@ public:
 	 */
 	SortBy getKeyOrder();
 
+	/**
+	 * Print rank_size words with the greatest keys.
+	 *  @param rank_size Amount of words in ranking list.
+	 */
+	void printGreatestKeys( unsigned rank_size );
+
+	/**
+	 * Print rank_size words with the lowest keys.
+	 *  @param rank_size Amount of words in ranking list.
+	 */
+	void printLowestKeys( unsigned rank_size );
+
 private:
 	/**
 	 * Set AVL tree's root.

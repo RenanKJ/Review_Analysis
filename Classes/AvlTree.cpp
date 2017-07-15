@@ -7,6 +7,9 @@
  */
 
 // Libraries:
+#include <iostream>
+#include <iomanip>
+#include <stack>
 #include "AvlTree.h"
 
 using namespace std;
@@ -67,12 +70,6 @@ bool AvlTree::isEmpty()
 	return ( getRoot() == nullptr );
 }
 
-void AvlTree::setRoot( AvlTreeNode *new_root )
-{
-	// Assign new_root as tree's root.
-		this->root_ = new_root;
-}
-
 AvlTreeNode* AvlTree::getRoot()
 {
 	// Return root node.
@@ -83,4 +80,158 @@ SortBy AvlTree::getKeyOrder()
 {
 	// Return sorting order.
 	return this->key_order_;
+}
+
+void AvlTree::printGreatestKeys( unsigned rank_size )
+{
+	// Copy of rank_size.
+	unsigned size = rank_size;
+	// Amount of digits in rank_size.
+	unsigned digits_amount = 0;
+	// Calculate the amount of digits in rank_size.
+	while( size > 0 )
+	{
+		size /= 10;
+		++digits_amount;
+	}
+	// Set size to 1.
+	size = 1;
+
+	// Stack to traverse tree.
+	stack< AvlTreeNode* > tree_traversal;
+	// Stack of printed words (to avoid printing again when backtracking).
+	stack< string > printed_words;
+	// Last printed or checked word.
+	string last_word;
+
+	// Push tree's root to the stack.
+	tree_traversal.push( getRoot() );
+
+	// Print header line.
+	( getKeyOrder() == SortBy::SCORE ) ? cout << "> SCORE RANKING\n" : cout << "> FREQUENCY RANKING\n";
+
+	// Search for rank_size words:
+	while( !tree_traversal.empty() && size <= rank_size )
+	{
+		// If current word was already printed, its left descendants were already checked;
+		// keep backtracking.
+		if( !printed_words.empty() &&
+				tree_traversal.top()->getData()->getWord() == printed_words.top() )
+		{
+			last_word = printed_words.top();
+
+			printed_words.pop();
+			tree_traversal.pop();
+		}
+
+		// If last word wasn't in the right descendant and there're right descendants,
+		// search for greater key among right descendants.
+		else if( tree_traversal.top()->getDescendants().second != nullptr &&
+				tree_traversal.top()->getDescendants().second->getData()->getWord() != last_word )
+		{
+			tree_traversal.push( tree_traversal.top()->getDescendants().second );
+		}
+
+		// There're no more right descendants:
+		else
+		{
+			// This is one of the words with the greatest keys.
+			cout << setw( digits_amount ) << setfill( '0' ) << size
+					<< ". " << tree_traversal.top()->getData()->getWord() << '\n';
+			++size;  // Increment amount of found words.
+			last_word = tree_traversal.top()->getData()->getWord();
+
+			// If last word wasn't in the left descendant and there're left descendants,
+			// search for next greater key among left descendants.
+			if( tree_traversal.top()->getDescendants().first != nullptr &&
+					tree_traversal.top()->getDescendants().first->getData()->getWord() != last_word )
+			{
+				printed_words.push( tree_traversal.top()->getData()->getWord() );
+				tree_traversal.push( tree_traversal.top()->getDescendants().first );
+			}
+			// Left and right descendants have been checked or do not exist, keep backtracking.
+			else
+				tree_traversal.pop();
+		}
+	}
+}
+
+void AvlTree::printLowestKeys( unsigned rank_size )
+{
+	// Copy of rank_size.
+	unsigned size = rank_size;
+	// Amount of digits in rank_size.
+	unsigned digits_amount = 0;
+	// Calculate the amount of digits in rank_size.
+	while( size > 0 )
+	{
+		size /= 10;
+		++digits_amount;
+	}
+	// Set size to 1.
+	size = 1;
+
+	// Stack to traverse tree.
+	stack< AvlTreeNode* > tree_traversal;
+	// Stack of printed words (to avoid printing again when backtracking).
+	stack< string > printed_words;
+	// Last printed or checked word.
+	string last_word;
+
+	// Push tree's root to the stack.
+	tree_traversal.push( getRoot() );
+
+	// Print header line.
+	( getKeyOrder() == SortBy::SCORE ) ? cout << "> SCORE RANKING\n" : cout << "> FREQUENCY RANKING\n";
+
+	// Search for rank_size words:
+	while( !tree_traversal.empty() && size <= rank_size )
+	{
+		// If current word was already printed, its right descendants were already checked;
+		// keep backtracking.
+		if( !printed_words.empty() &&
+				tree_traversal.top()->getData()->getWord() == printed_words.top() )
+		{
+			last_word = printed_words.top();
+
+			printed_words.pop();
+			tree_traversal.pop();
+		}
+
+		// If last word wasn't in the left descendant and there're left descendants,
+		// search for lower key among left descendants.
+		else if( tree_traversal.top()->getDescendants().first != nullptr &&
+				tree_traversal.top()->getDescendants().first->getData()->getWord() != last_word )
+		{
+			tree_traversal.push( tree_traversal.top()->getDescendants().first );
+		}
+
+		// There're no more left descendants:
+		else
+		{
+			// This is one of the words with the lowest keys.
+			cout << setw( digits_amount ) << setfill( '0' ) << size
+					<< ". " << tree_traversal.top()->getData()->getWord() << '\n';
+			++size;  // Increment amount of found words.
+			last_word = tree_traversal.top()->getData()->getWord();
+
+			// If last word wasn't in the right descendant and there're right descendants,
+			// search for next lower key among right descendants.
+			if( tree_traversal.top()->getDescendants().second != nullptr &&
+					tree_traversal.top()->getDescendants().second->getData()->getWord() != last_word )
+			{
+				printed_words.push( tree_traversal.top()->getData()->getWord() );
+				tree_traversal.push( tree_traversal.top()->getDescendants().second );
+			}
+			// Left and right descendants have been checked or do not exist, keep backtracking.
+			else
+				tree_traversal.pop();
+		}
+	}
+}
+
+void AvlTree::setRoot( AvlTreeNode *new_root )
+{
+	// Assign new_root as tree's root.
+		this->root_ = new_root;
 }
