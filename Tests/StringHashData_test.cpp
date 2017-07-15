@@ -73,10 +73,10 @@ int main()
 
 	// Print attributes.
 	cout << "\nD1.clear():\n"
-			<< "Data      = " << D0.getData()
-			<< "\nScore     = " << D0.getScore( true, &score_range ) << " : " << score_range
-			<< "\nFrequency = " << D0.getFrequency()
-			<< "\nOccupied? = " << D0.wasOccupied()
+			<< "Data      = " << D1.getData()
+			<< "\nScore     = " << D1.getScore( true, &score_range ) << " : " << score_range
+			<< "\nFrequency = " << D1.getFrequency()
+			<< "\nOccupied? = " << D1.wasOccupied()
 			<< endl;
 
 	// recalculate() method.
