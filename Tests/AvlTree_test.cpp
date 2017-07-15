@@ -12,6 +12,8 @@
 
 // Libraries:
 #include <iostream>
+#include <forward_list>
+#include <string>
 #include <stack>
 #include "../Classes/AvlTree.h"
 
@@ -43,11 +45,11 @@ int main()
 	StringHashData d4( "d4", 3.521 );
 
 	// Increase d1 and d3 frequencies.
-	d1.recalculateScore( 3.00 );
-	d3.recalculateScore( 3.00 );
+	//d1.recalculateScore( 3.00 );
+	//d3.recalculateScore( 3.00 );
 
 	// Test constructor.
-	AvlTree tree( FREQUENCY );
+	AvlTree tree( SCORE );
 
 	// insert() method.
 	tree.insert( &d0 );
@@ -70,6 +72,14 @@ int main()
 			<< "\nd4 = " << tree.search( &d4 )
 			<< endl;
 
+	// printGreatestKeys() method.
+	cout << "\n-- Greatest keys:\n";
+	tree.printGreatestKeys( 5 );
+
+	// printLowestKeys() method.
+	cout << "\n-- Lowest keys:\n";
+	tree.printLowestKeys( 5 );
+
 	// remove() method.
 	tree.remove( &d4 );
 	tree.remove( &d1 );
@@ -77,7 +87,7 @@ int main()
 	tree.remove( &d2 );
 	tree.remove( &d3 );
 
-	cout << "\ntree.remove(...):\n";
+	cout << "\n\ntree.remove(...):\n";
 
 	// Check if keys were removed.
 	if( tree.isEmpty() )
