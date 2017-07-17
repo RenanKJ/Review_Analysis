@@ -53,10 +53,10 @@ int main()
 			<< endl;
 
 	// Testing remove() method.
-	h.remove( h.getData( k0 ).getWord() );
-	h.remove( h.getData( k1 ).getWord() );
-	h.remove( h.getData( k2 ).getWord() );
-	h.remove( h.getData( k3 ).getWord() );
+	h.remove( h.getData( k0 )->getWord() );
+	h.remove( h.getData( k1 )->getWord() );
+	h.remove( h.getData( k2 )->getWord() );
+	h.remove( h.getData( k3 )->getWord() );
 	h.remove( "missing" );
 
 	cout << "\nh.remove(...):\n"

@@ -32,7 +32,7 @@ int main()
 
 	// Print attributes.
 	cout << "D0:\n"
-			<< "Data      = " << D0.getData()
+			<< "Data      = " << D0.getWord()
 			<< fixed << setprecision( 2 ) << boolalpha
 			<< "\nScore     = " << D0.getScore( true, &score_range ) << " : " << score_range
 			<< "\nFrequency = " << D0.getFrequency()
@@ -40,7 +40,7 @@ int main()
 			<< endl;
 
 	cout << "\nD1:\n"
-			<< "Data      = " << D1.getData()
+			<< "Data      = " << D1.getWord()
 			<< "\nScore     = " << D1.getScore( true, &score_range ) << " : " << score_range
 			<< "\nFrequency = " << D1.getFrequency()
 			<< "\nOccupied? = " << D1.wasOccupied()
@@ -51,7 +51,7 @@ int main()
 
 	// Print attributes.
 	cout << "\nD0.insert( \"semester\", 0.0 ):\n"
-			<< "Data      = " << D0.getData()
+			<< "Data      = " << D0.getWord()
 			<< "\nScore     = " << D0.getScore( true, &score_range ) << " : " << score_range
 			<< "\nFrequency = " << D0.getFrequency()
 			<< "\nOccupied? = " << D0.wasOccupied()
@@ -62,7 +62,7 @@ int main()
 
 	// Print attributes.
 	cout << "\nD0.remove():\n"
-			<< "Data      = " << D0.getData()
+			<< "Data      = " << D0.getWord()
 			<< "\nScore     = " << D0.getScore( true, &score_range ) << " : " << score_range
 			<< "\nFrequency = " << D0.getFrequency()
 			<< "\nOccupied? = " << D0.wasOccupied()
@@ -73,7 +73,7 @@ int main()
 
 	// Print attributes.
 	cout << "\nD1.clear():\n"
-			<< "Data      = " << D1.getData()
+			<< "Data      = " << D1.getWord()
 			<< "\nScore     = " << D1.getScore( true, &score_range ) << " : " << score_range
 			<< "\nFrequency = " << D1.getFrequency()
 			<< "\nOccupied? = " << D1.wasOccupied()
@@ -86,7 +86,7 @@ int main()
 
 	// Print attributes.
 	cout << "\nD0.recalculateScore(...):\n"
-			<< "Data      = " << D0.getData()
+			<< "Data      = " << D0.getWord()
 			<< "\nScore     = " << D0.getScore( true, &score_range ) << " : " << score_range
 			<< "\nFrequency = " << D0.getFrequency()
 			<< "\nOccupied? = " << D0.wasOccupied()
