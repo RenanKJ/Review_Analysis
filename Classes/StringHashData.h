@@ -1,5 +1,5 @@
 /**
- * Definitions of StringHashData class - satellite data for StringHashTable class.
+ *  Definitions of StringHashData class - satellite data for StringHashTable class.
  *
  *  Created on: July 7th, 2017
  *     Authors: Aline Weber
@@ -11,7 +11,6 @@
 
 // Libraries:
 #include <string>
-#include <utility>
 
 
 class StringHashData {
@@ -59,7 +58,7 @@ public:
 	 * Get satellite data (word from text).
 	 *  @return Satellite data (word from text).
 	 */
-	std::string getData();
+	std::string getWord();
 
 	/**
 	 * Get this word's score of expressed feelings.

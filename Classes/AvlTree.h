@@ -62,6 +62,7 @@ public:
 	/**
 	 * Get AVL tree's root.
 	 *  @return AVL tree's root node.
+	 *  @attention This method breaks encapsulation, use it carefully.
 	 */
 	AvlTreeNode* getRoot();
 

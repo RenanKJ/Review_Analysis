@@ -27,10 +27,11 @@ public:
 	 * Insert string in hash table at given index.
 	 *  @param word Word to be inserted.
 	 *  @param phrase_score Word's score in the phrase.
+	 *  @param key Word's key in the hash table if found (optional).
 	 *  @return True if inserted, false otherwise.
 	 *  @attention May call solveCollision() or rehash() methods.
 	 */
-	bool insert( std::string word, double phrase_score );
+	bool insert( std::string word, double phrase_score, unsigned *key = nullptr );
 
 	/**
 	 * Search for given string in hash table.
@@ -47,11 +48,12 @@ public:
 	void remove( std::string word );
 
 	/**
-	 * Get satellite data at key position.
-	 *  @param key Position where data is in hash table.
-	 *  @return Satellite data at key position.
+	 * Get satellite data at position key by reference.
+	 *  @param key Position in hash table.
+	 *  @return Pointer to satellite data.
+	 *  @attention This method breaks encapsulation, use it carefully.
 	 */
-	StringHashData getData( unsigned key );
+	StringHashData* getData( unsigned key );
 
 	/**
 	 * Get hash table's current size.
@@ -92,14 +94,6 @@ private:
 	void setData( StringHashData data, unsigned key );
 
 	/**
-	 * Get satellite data at position key by reference.
-	 *  @param key Position in hash table.
-	 *  @return Pointer to satellite data.
-	 *  @attention This method breaks encapsulation, use it carefully.
-	 */
-	StringHashData* getDataRef( unsigned key );
-
-	/**
 	 * Clear hash table at position key.
 	 *  @param key Position to be cleared.
 	 */
@@ -133,6 +127,21 @@ private:
 	 *  @return True if space is free, false otherwise.
 	 */
 	bool isFree( unsigned key );
+
+	/**
+	 * Check if a given number is prime.
+	 *  @param num Number to check.
+	 *  @return True if number is prime, false otherwise.
+	 */
+	bool checkIfPrime( unsigned num );
+
+	/**
+	 * Find prime number that is at the same time greater than and closer to
+	 * a given number.
+	 *  @param num Number to start search.
+	 *  @return Prime number greater than and closer to num.
+	 */
+	unsigned findNextPrime( unsigned num );
 
 	/**
 	 * Reallocate the entire hash table. Operation has a high cost and should be used

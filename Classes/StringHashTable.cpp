@@ -11,6 +11,8 @@
 #include <stack>
 #include <cmath>
 #include "StringHashTable.h"
+// DEBUG:
+#include <iostream>
 
 using namespace std;
 
@@ -28,13 +30,13 @@ StringHashTable::StringHashTable( unsigned size )
 	calculateMaxRate();
 }
 
-bool StringHashTable::insert( std::string word, double phrase_score )
+bool StringHashTable::insert( std::string word, double phrase_score, unsigned *key )
 {
 	// Hash value for given satellite data.
 	unsigned hash_num;
 
 	// If word isn't in the hash table:
-	if( !search( word ) )
+	if( !search( word, &hash_num ) )
 	{
 		// Calculate h( hash_num ).
 		hash_num = hash( word );
@@ -42,8 +44,16 @@ bool StringHashTable::insert( std::string word, double phrase_score )
 		// If hash table at hash_num is free, insert data.
 		if( isFree( hash_num ) )
 		{
-			// Insert data in hash table.
-			getDataRef( hash_num )->insert( word, phrase_score );
+			//StringHashData *new_data = new StringHashData;
+			//new_data->insert( word, phrase_score );
+			//setData( new_data, hash_num );
+
+			// Place word and score in satellite data.
+			getData( hash_num )->insert( word, phrase_score );
+
+			// If requested, return key to this word as well.
+			if( key != nullptr )
+				*key = hash_num;
 		}
 
 		// Otherwise, a collision occurred, search for empty position.
@@ -52,8 +62,16 @@ bool StringHashTable::insert( std::string word, double phrase_score )
 			// Obtain an empty position using Double Hashing.
 			hash_num = solveCollision( word );
 
-			// Insert data in hash table.
-			getDataRef( hash_num )->insert( word, phrase_score );
+			//StringHashData *new_data = new StringHashData;
+			//new_data->insert( word, phrase_score );
+			//setData( new_data, hash_num );
+
+			// Place word and score in satellite data.
+			getData( hash_num )->insert( word, phrase_score );
+
+			// If requested, return key to this word as well.
+			if( key != nullptr )
+				*key = hash_num;
 		}
 
 		// Increment amount of data stored.
@@ -67,6 +85,10 @@ bool StringHashTable::insert( std::string word, double phrase_score )
 		// Indicate new data has been inserted.
 		return true;
 	}
+
+	// If requested, return key to this word as well.
+	if( key != nullptr )
+		*key = hash_num;
 
 	// Indicate data was already inserted.
 	return false;
@@ -87,13 +109,14 @@ bool StringHashTable::search( std::string word, unsigned *key )
 
 	// Search for word until either it's found or a position that wasn't
 	// previously occupied is found.
-	while( !is_found && getData( hash_num ).wasOccupied() )
+	while( !is_found && getData( hash_num )->wasOccupied() )
 	{
 		// If word has been found, indicate so.
-		if( getData( hash_num ).getWord() == word )
+		if( getData( hash_num )->getWord() == word )
 		{
 			is_found = true;
 
+			// If requested, return key to this word as well.
 			if( key != nullptr )
 				*key = hash_num;
 		}
@@ -118,15 +141,15 @@ void StringHashTable::remove( std::string word )
 	// If word is in the tree, remove it.
 	if( search( word, &hash_num ) )
 	{
-		getDataRef( hash_num )->remove();
+		getData( hash_num )->remove();
 		this->amount_of_data_--;
 	}
 }
 
-StringHashData StringHashTable::getData( unsigned key )
+StringHashData* StringHashTable::getData( unsigned key )
 {
-	// Return satellite data at key position.
-	return this->table_.at( key );
+	// Return pointer to satellite data at position key.
+	return &( this->table_.at( key ) );
 }
 
 unsigned StringHashTable::getSize()
@@ -163,12 +186,6 @@ void StringHashTable::setData( StringHashData data, unsigned key )
 {
 	// Assign data to hash table's position.
 	this->table_.at( key ) = data;
-}
-
-StringHashData* StringHashTable::getDataRef( unsigned key )
-{
-	// Return pointer to satellite data at position key.
-	return &( this->table_.at( key ) );
 }
 
 void StringHashTable::clear( unsigned key )
@@ -256,7 +273,35 @@ unsigned StringHashTable::solveCollision( std::string word )
 bool StringHashTable::isFree( unsigned key )
 {
 	// Return true if space is free or false otherwise.
-	return getData( key ).getWord().empty();
+	return getData( key )->getWord().empty();
+}
+
+
+bool StringHashTable::checkIfPrime( unsigned num )
+{
+	// Indicate if number is prime.
+   bool is_prime = true;
+
+   unsigned i = 2;  // Counter.
+   // Check by exhaustive search if num is prime.
+   while( i < num && is_prime )
+   {
+      if( num % i == 0 )
+         is_prime = false;
+
+      ++i;
+   }
+
+   return is_prime;
+}
+
+unsigned StringHashTable::findNextPrime( unsigned num )
+{
+	// Search exhaustively for prime number.
+   while( !checkIfPrime( num ) )
+      ++num;
+
+   return num;
 }
 
 void StringHashTable::rehash()
@@ -264,9 +309,12 @@ void StringHashTable::rehash()
 	// Hash table's original size.
 	unsigned old_size = getSize();
 
+	// Calculate prime number closer to getSize() * 2.
+	unsigned new_size = findNextPrime( getSize() * 2 );
+
 	// Double hash table's size.
-	this->table_.reserve( getSize() * 2 );
-	this->table_.resize( getSize() * 2 );
+	this->table_.reserve( new_size );
+	this->table_.resize( new_size );
 
 	// AVL Tree to indicate already reinserted elements.
 	AvlTree reinserted( SortBy::SCORE );
@@ -275,11 +323,11 @@ void StringHashTable::rehash()
 	for( unsigned i = 0; i < old_size; ++i )
 	{
 		// If there's an element in this position and it wasn't reinserted, reinsert it.
-		if( !isFree( i ) && !reinserted.search( getDataRef( i ) ) )
+		if( !isFree( i ) && !reinserted.search( getData( i ) ) )
 			reinsert( i, reinserted );
 
 		// If there's no element in this position, but it was previously occupied, clear it.
-		else if( isFree( i ) && getData( i ).wasOccupied() )
+		else if( isFree( i ) && getData( i )->wasOccupied() )
 			clear( i );
 	}
 }
@@ -287,11 +335,11 @@ void StringHashTable::rehash()
 void StringHashTable::reinsert( unsigned key, AvlTree &reinserted )
 {
 	// Copy of data to be reinserted.
-	StringHashData data_copy = getData( key );
+	StringHashData data_copy = *( getData( key ) );
 	// Amount of times hashing function was called.
 	unsigned round = 1;
 
-	// Clear data from the hash table at key.
+	// Completely remove data from the hash table at key.
 	clear( key );
 
 	// Calculate hashing function for word at position key.
@@ -308,12 +356,12 @@ void StringHashTable::reinsert( unsigned key, AvlTree &reinserted )
 			setData( data_copy, hash_num );
 
 			// Indicate data has been reinserted.
-			reinserted.insert( getDataRef( hash_num ) );
+			reinserted.insert( getData( hash_num ) );
 			was_reinserted = true;
 		}
 
 		// If it is occupied, check if data in position hasn't been reinserted.
-		else if( !reinserted.search( getDataRef( hash_num ) ) )
+		else if( !reinserted.search( getData( hash_num ) ) )
 			reinsert( hash_num, reinserted );
 
 		// Otherwise, it is occupied and a collision occurred - recalculate hash value.
