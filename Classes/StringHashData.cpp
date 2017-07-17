@@ -35,7 +35,7 @@ StringHashData::StringHashData( std::string word, double phrase_score )
 bool StringHashData::insert( std::string word, double phrase_score )
 {
 	// If position is free, insert word:
-	if( getData().empty() )
+	if( getWord().empty() )
 	{
 		// Assign word as satellite data.
 		this->satellite_data_ = word;
@@ -95,7 +95,7 @@ bool StringHashData::recalculateScore( double phrase_score )
 	return false;
 }
 
-std::string StringHashData::getData()
+std::string StringHashData::getWord()
 {
 	// Return satellite data (word).
 	return this->satellite_data_;
@@ -132,6 +132,7 @@ unsigned StringHashData::getFrequency()
 	// Return word's frequency.
 	return this->frequency_;
 }
+
 
 bool StringHashData::wasOccupied()
 {

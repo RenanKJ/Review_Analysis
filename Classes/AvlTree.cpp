@@ -108,7 +108,7 @@ void AvlTree::printGreatestKeys( unsigned rank_size )
 	tree_traversal.push( getRoot() );
 
 	// Print header line.
-	( getKeyOrder() == SortBy::SCORE ) ? cout << "> SCORE RANKING\n" : cout << "> FREQUENCY RANKING\n";
+	( getKeyOrder() == SortBy::SCORE ) ? cout << "--   Score Ranking   --\n" : cout << "-- Frequency Ranking --\n";
 
 	// Search for rank_size words:
 	while( !tree_traversal.empty() && size <= rank_size )
@@ -182,7 +182,7 @@ void AvlTree::printLowestKeys( unsigned rank_size )
 	tree_traversal.push( getRoot() );
 
 	// Print header line.
-	( getKeyOrder() == SortBy::SCORE ) ? cout << "> SCORE RANKING\n" : cout << "> FREQUENCY RANKING\n";
+	( getKeyOrder() == SortBy::SCORE ) ? cout << "--   Score Ranking   --\n" : cout << "-- Frequency Ranking --\n";
 
 	// Search for rank_size words:
 	while( !tree_traversal.empty() && size <= rank_size )
