@@ -71,6 +71,7 @@ public:
 	/**
 	 * Get node's data.
 	 *  @return Node's data.
+	 *  @attention This method breaks encapsulation, use it carefully.
 	 */
 	StringHashData* getData();
 
@@ -82,6 +83,13 @@ public:
 	void setLeftDescendant( AvlTreeNode *left_node );
 
 	/**
+	 * Get node's left descendant.
+	 *  @return Pointer to node's left descendant.
+	 *  @attention This method breaks encapsulation, use it carefully.
+	 */
+	AvlTreeNode* getLeftDescendant();
+
+	/**
 	 * Set node's right descendant.
 	 *  @param Node's right descendant.
 	 *  @return True if node was set, false if there's already a right descendant.
@@ -89,10 +97,11 @@ public:
 	void setRightDescendant( AvlTreeNode *right_node );
 
 	/**
-	 * Get node's left and right descendants.
-	 *  @return Pair of node's left and right descendants.
+	 * Get node's right descendant.
+	 *  @return Pointer to node's right descendant.
+	 *  @attention This method breaks encapsulation, use it carefully.
 	 */
-	std::pair< AvlTreeNode*, AvlTreeNode* > getDescendants();
+	AvlTreeNode* getRightDescendant();
 
 	/**
 	 * Set node's height.
@@ -166,6 +175,5 @@ private:
 	int factor_;  // Node's balancing factor.
 
 };
-
 
 #endif /* AVLTREENODE_H_ */

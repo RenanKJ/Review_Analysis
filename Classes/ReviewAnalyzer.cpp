@@ -37,10 +37,10 @@ int ReviewAnalyzer::run()
 	printCommands();
 
 	string command; // User's command.
-	while( command != "exit" )
+	while( command != "exit" && command != "quit" )
 	{
 		// Print symbol to prompt user.
-		cout << "\n> ";
+		cout << "\n > ";
 		// Read command.
 		command = readCommand();
 		// Change string to lowercase.
@@ -52,8 +52,14 @@ int ReviewAnalyzer::run()
 			// Read argument (review text).
 			string review = readArgument();
 
-			// Call "analyze" command.
-			analyze( review );
+			// If no argument was provided, print message.
+			if( review.empty() )
+				cout << "Command requires argument. Enter \"help\" to list commands." << endl;
+			else
+			{
+				// Call "analyze" command.
+				analyze( review );
+			}
 		}
 
 		// If command is "help":
@@ -61,6 +67,8 @@ int ReviewAnalyzer::run()
 		{
 			// Call "help" command.
 			printCommands();
+			// Ignore "any" input (up to 1 million characters) after "help".
+			cin.ignore( 1000000, '\n' );
 		}
 
 		// If command is "read":
@@ -69,66 +77,140 @@ int ReviewAnalyzer::run()
 			// Read argument (file name).
 			string file_name = readArgument();
 
-			// Call "read" command.
-			if( !readFile( file_name ) )
+			// If no argument was provided, print message.
+			if( file_name.empty() )
+				cout << "Command requires argument. Enter \"help\" to list commands." << endl;
+			// Otherwise, call "read" command.
+			else if( !readFile( file_name ) )
 				cout << "Couldn't open file. Wrong file path or format." << endl;
+			else
+			{
+				cout << "Generating ranking of words...\n";
+
+				// Create frequency ranking tree.
+				rankFrequency();
+
+				cout << "Success." << endl;
+			}
 		}
 
 		// If command is "print+":
 		else if( command == "print+" )
 		{
 			// Read argument (ranking size).
-			unsigned rank_size = stoi( readArgument() );			// TODO: exception handling for wrong arguments.
+			string rank_size = readArgument();
 
-			if( !this->score_ranking_.isEmpty() )
-			{
-				// Call "print+" command.
-				printMostPositive( rank_size );
-			}
+			// If no argument was provided, print message.
+			if( rank_size.empty() )
+				cout << "Command requires argument. Enter \"help\" to list commands." << endl;
+
+			// Otherwise, if argument is valid, call "print+" command.
 			else
-				cout << "Database is empty." << endl;
+			{
+				// Assure argument contains only digits (0-9).
+				unsigned i = 0;  // Index.
+				while( i < rank_size.size() &&
+						rank_size.at( i ) >= '0' && rank_size.at( i ) <= '9' )
+				{
+					++i;
+				}
+				if( i < rank_size.size() )
+					cout << "Invalid argument. Enter \"help\" to list commands." << endl;
+
+				// Argument is valid:
+				else if( !this->score_ranking_.isEmpty() )
+				{
+					// Call "print+" command.
+					printMostPositive( stoi( rank_size ) );
+				}
+				else
+					cout << "Database is empty." << endl;
+			}
 		}
 
 		// If command is "print-":
 		else if( command == "print-" )
 		{
 			// Read argument (ranking size).
-			unsigned rank_size = stoi( readArgument() );			// TODO: exception handling for wrong arguments.
+			string rank_size = readArgument();
 
-			if( !this->score_ranking_.isEmpty() )
-			{
-				// Call "print-" command.
-				printMostNegative( rank_size );
-			}
+			// If no argument was provided, print message.
+			if( rank_size.empty() )
+				cout << "Command requires argument. Enter \"help\" to list commands." << endl;
+
+			// Otherwise, if argument is valid, call "print-" command.
 			else
-				cout << "Database is empty." << endl;
+			{
+				// Assure argument contains only digits (0-9).
+				unsigned i = 0;  // Index.
+				while( i < rank_size.size() &&
+						rank_size.at( i ) >= '0' && rank_size.at( i ) <= '9' )
+				{
+					++i;
+				}
+				if( i < rank_size.size() )
+					cout << "Invalid argument. Enter \"help\" to list commands." << endl;
+
+				// Argument is valid:
+				else if( !this->score_ranking_.isEmpty() )
+				{
+					// Call "print-" command.
+					printMostNegative( stoi( rank_size ) );
+				}
+				else
+					cout << "Database is empty." << endl;
+			}
 		}
 
 		// If command is "printf":
 		else if( command == "printf" )
 		{
 			// Read argument (ranking size).
-			unsigned rank_size = stoi( readArgument() );			// TODO: exception handling for wrong arguments.
+			string rank_size = readArgument();
 
-			if( !this->frequency_ranking_.isEmpty() )
-			{
-				// Call "printf" command.
-				printMostFrequent( rank_size );
-			}
+			// If no argument was provided, print message.
+			if( rank_size.empty() )
+				cout << "Command requires argument. Enter \"help\" to list commands." << endl;
+
+			// Otherwise, if argument is valid, call "printf" command.
 			else
-				cout << "Database is empty." << endl;
+			{
+				// Assure argument contains only digits (0-9).
+				unsigned i = 0;  // Index.
+				while( i < rank_size.size() &&
+						rank_size.at( i ) >= '0' && rank_size.at( i ) <= '9' )
+				{
+					++i;
+				}
+				if( i < rank_size.size() )
+					cout << "Invalid argument. Enter \"help\" to list commands." << endl;
+
+				// Argument is valid:
+				else if( !this->score_ranking_.isEmpty() )
+				{
+					// Call "printf" command.
+					printMostFrequent( stoi( rank_size ) );
+				}
+				else
+					cout << "Database is empty." << endl;
+			}
 		}
 
 		// If command is "exit" or "quit":
 		else if( command == "exit" || command == "quit" )
 		{
 			// Print message.
-			cout << "\nProgram ended successfully." << endl;
+			cout << "Program ended successfully." << endl;
 		}
 
 		// If command is invalid, print message.
 		else if( command.empty() )
+		{
 			cout << "Invalid command. Enter \"help\" to list commands." << endl;
+
+			// Ignore "any" input (up to 1 million characters) after invalid command.
+			cin.ignore( 1000000, '\n' );
+		}
 	}
 
 	// Program ended successfully.
@@ -162,9 +244,9 @@ std::string ReviewAnalyzer::readCommand()
 	}
 }
 
-std::string ReviewAnalyzer::readArgument()		// TODO: exception handling for invalid arguments.
+std::string ReviewAnalyzer::readArgument()
 {
-	// Ignore characters in buffer (e.g. whitespace).
+	// Ignore whitespace character after command.
 	cin.ignore();
 
 	// Argument from the user.
@@ -172,6 +254,22 @@ std::string ReviewAnalyzer::readArgument()		// TODO: exception handling for inva
 
 	// Read argument.
 	getline( std::cin, argument );
+
+	// Ignore whitespace before argument if it isn't empty.
+	if( !argument.empty() )
+	{
+		unsigned i = 0;  // Index for string.
+		while( i < argument.size() &&	( argument.at( i ) == ' ' ||
+				argument.at( i ) == '\t' || argument.at( i ) == '\n' ) )
+		{
+			++i;
+		}
+		// Get a substring of argument without whitespace before it.
+		if( i < argument.size() )
+			argument = argument.substr( i );
+		else
+			argument.erase();
+	}
 
 	// Return command's argument.
 	return argument;
@@ -183,19 +281,29 @@ void ReviewAnalyzer::printCommands()
 	cout << "-- Commands list --\n";
 
 	// Print command and description.
-	cout << "analyze <text>   :  analyzes the overall emotion of <text>\n"
-			<< "read <filename>  :  read file and store words in database\n"
-			<< "print+ <amount>  :  print <amount> most positive words in database\n"
-			<< "print- <amount>  :  print <amount> most negative words in database\n"
-			<< "printf <amount>  :  print <amount> most frequent words in database\n"
-			<< "help             :  print list of commands\n"
-			<< "exit             :  ends program\n"
+	cout <<  "read     <filename>  : read file and store words in database\n"
+			<< "analyze  <text>      : analyzes the overall emotion of <text>\n"
+			<< "print+   <amount>    : print <amount> most positive words in database\n"
+			<< "print-   <amount>    : print <amount> most negative words in database\n"
+			<< "printf   <amount>    : print <amount> most frequent words in database\n"
+			<< "help                 : print list of commands\n"
+			<< "exit                 : ends program\n"
 			<< "--  End of list  --"
 			<< endl;
 }
 
 bool ReviewAnalyzer::readFile( std::string file_name )		// TODO: exception handling for wrong format.
 {
+	// Add ".txt" to file_name if user didn't write it.
+	string extension;
+	if( file_name.size() >= 5 )
+		extension = file_name.substr( file_name.size() - 4, 4 );
+	if( extension != ".txt" )
+		file_name = file_name + ".txt";
+
+	// Print message.
+	cout << "Attempting to open file \"" << file_name << "\".\n";
+
 	// File to be read.
 	ifstream file;
 
@@ -205,13 +313,13 @@ bool ReviewAnalyzer::readFile( std::string file_name )		// TODO: exception handl
 	if( !file.is_open() )
 		return false;
 
+	// Print message.
+	cout << "Reading file..." << endl;
+
 	// Review's overall feeling.
 	double feeling;
 	// Review's text.
 	string review;
-
-	// DEBUG: counter.
-	unsigned counter = 1;
 
 	// Read entire file, line by line.
 	while( !file.eof() )
@@ -228,9 +336,6 @@ bool ReviewAnalyzer::readFile( std::string file_name )		// TODO: exception handl
 		// Stream to get each word.
 		istringstream line( review );
 
-		// DEBUG: print line.
-		cout << "Line " << counter++ << endl;
-
 		// Insert each word in database and update scores accordingly.
 		while( !line.eof() )
 		{
@@ -242,9 +347,8 @@ bool ReviewAnalyzer::readFile( std::string file_name )		// TODO: exception handl
 			{
 				// Insert word and get its key.
 				insert( word, feeling, &key );
-				cout << " Word " << word << " Key " << key << " Rate " << this->database_.getUsedRate() << endl;
 				// Update word's score.
-				//updateScore( getSatelliteData( key ), feeling );
+				updateScore( getSatelliteData( key ), feeling );
 			}
 		}
 	}
@@ -294,15 +398,15 @@ bool ReviewAnalyzer::analyze( std::string review )
 				<< "--     Score    --\n";
 
 		if( score < 0.95 )
-			cout << "You better avoid it!\n" << score << " - Awful";
+			cout << "You better avoid it!\n" << score << " / 4.00 - Awful";
 		else if( score < 1.95 )
-			cout << "Maybe when you've got nothing better to watch?\n" << score << " - Bad";
+			cout << "Maybe when you've got nothing better to do?\n" << score << " / 4.00 - Bad";
 		else if( score < 2.95 )
-			cout << "Nothing remarkable, but not bad either.\n" << score << " - OK";
+			cout << "Nothing remarkable, but not bad either.\n" << score << " / 4.00 - OK";
 		else if( score < 3.95 )
-			cout << "Recommended! Nice film!\n" << score << " - Good";
+			cout << "Recommended! Nice one!\n" << score << " / 4.00 - Good";
 		else
-			cout << "This deserves an Oscar!\n" << score << " - Excellent";
+			cout << "As perfect as it can be!\n" << score << " / 4.00 - Excellent";
 
 		cout << "\n-- End of score --" << endl;
 	}
@@ -416,9 +520,9 @@ bool ReviewAnalyzer::rankFrequency()
 	while( !traverse.empty() )
 	{
 		// Node's left descendant.
-		AvlTreeNode *left = traverse.top()->getDescendants().first;
+		AvlTreeNode *left = traverse.top()->getLeftDescendant();
 		// Node's right descendant.
-		AvlTreeNode *right = traverse.top()->getDescendants().second;
+		AvlTreeNode *right = traverse.top()->getRightDescendant();
 
 		// If there's a left descendant that wasn't visited,
 		// push it to the stack.

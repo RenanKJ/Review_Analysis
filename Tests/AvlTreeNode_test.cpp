@@ -21,11 +21,11 @@ using namespace std;
 // Print AVL tree using left-right-center traversal.
 void printAvlTree( AvlTreeNode *node )
 {
-	if( node->getDescendants().first != nullptr )
-		printAvlTree( node->getDescendants().first );
+	if( node->getLeftDescendant() != nullptr )
+		printAvlTree( node->getLeftDescendant() );
 
-	if( node->getDescendants().second != nullptr )
-		printAvlTree( node->getDescendants().second );
+	if( node->getRightDescendant() != nullptr )
+		printAvlTree( node->getRightDescendant() );
 
 	cout << node->getKey() << " ";
 }

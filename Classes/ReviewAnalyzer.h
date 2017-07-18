@@ -20,7 +20,7 @@ public:
 	 * Constructor: initializes ranking trees and hash table (standard size is 150,001).
 	 *  @param hash_size Hash table's initial size.
 	 */
-	ReviewAnalyzer( unsigned hash_size = 30011 );
+	ReviewAnalyzer( unsigned hash_size = 100001 );
 
 	/**
 	 * Run analysis program.

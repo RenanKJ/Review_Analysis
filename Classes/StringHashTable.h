@@ -91,7 +91,7 @@ private:
 	 *  @param data Satellite data to be inserted.
 	 *  @param key Position in hash table.
 	 */
-	void setData( StringHashData data, unsigned key );
+	void setData( StringHashData *data, unsigned key );
 
 	/**
 	 * Clear hash table at position key.
@@ -167,8 +167,7 @@ private:
 	unsigned collisions_;      // Number of collisions.
 	double max_rate_;          // Maximum rate of occupation.
 
-	std::vector< StringHashData > table_;
+	std::vector< StringHashData* > table_;
 };
-
 
 #endif /* STRINGHASHTABLE_H_ */

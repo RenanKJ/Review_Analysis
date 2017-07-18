@@ -7,8 +7,10 @@
  */
 
 // Libraries:
-#include "../Classes/AvlTreeNode.h"
 #include <stack>
+#include <utility>
+#include "../Classes/AvlTreeNode.h"
+
 
 using namespace std;
 
@@ -35,12 +37,6 @@ AvlTreeNode* AvlTreeNode::insert( StringHashData *data, SortBy key_order )
 	double new_key = ( key_order == SortBy::SCORE ) ?
 			data->getScore() : static_cast< double >( data->getFrequency() );
 
-	// Stack to traverse tree and adjust nodes's heights and balancing factors.
-	stack< AvlTreeNode* > tree_traversal;
-
-	// Indicate if node's insertion position has been found.
-	bool is_found = false;
-
 	// If tree is empty, insert node as root.
 	if( getKey() == -1.0 )
 	{
@@ -55,75 +51,55 @@ AvlTreeNode* AvlTreeNode::insert( StringHashData *data, SortBy key_order )
 
 	// Otherwise, search for insertion position:
 
-	// Tree's root node.
-	AvlTreeNode *root = this;
-	// Push original root to tree_traversal stack.
-	tree_traversal.push( root );
-
-	// Search for insertion's position:
-	while( !is_found )
+	// If new node's key is lower than its ascendant's key:
+	else if( new_key < getKey() )
 	{
-		if( tree_traversal.top() == nullptr )
-			is_found = true;
-		// If new node's key is lower than its ascendant's key, search for insertion position
-		// among left descendants.
-		else if( new_key < tree_traversal.top()->getKey() )
-			tree_traversal.push( tree_traversal.top()->getDescendants().first );
-		// If new node's key is greater than or equal to its ascendant's key, search for
-		// insertion position among right descendants.
+		// If its ascendant has left descendants, search among them.
+		if( getLeftDescendant() != nullptr )
+			setLeftDescendant( getLeftDescendant()->insert( data, key_order ) );
+		// Otherwise, insert it as left descendant.
 		else
-			tree_traversal.push( tree_traversal.top()->getDescendants().second );
-	}
-
-	// Insert new node, if it wasn't already inserted as root.
-	if( is_found )
-	{
-		// Pop insertion position from the stack.
-		tree_traversal.pop();
-
-		// Node to be inserted as leaf:
-		AvlTreeNode *leaf = new AvlTreeNode();
-		leaf->setKey( new_key );  // Set new node's key.
-		leaf->setHeight( 1 );     // Initial height.
-		leaf->setData( data );    // Node's data.
-
-		// Link with ascendant as left descendant if leaf's key is lower than ascendant's key.
-		if( new_key < tree_traversal.top()->getKey() )
 		{
-			tree_traversal.top()->setLeftDescendant( leaf );
+			// Node to be inserted as leaf:
+			AvlTreeNode *leaf = new AvlTreeNode;
+			leaf->setKey( new_key );  // Set new node's key.
+			leaf->setHeight( 1 );     // Initial height.
+			leaf->setData( data );    // Node's data.
+
+			// Set leaf as left descendant.
+			setLeftDescendant( leaf );
 		}
-		// Link with ascendant as right descendant if leaf's key is greater than or equal to
-		// ascendant's key.
+	}
+	// If new node's key is greater than or equal to its ascendant's key:
+	else
+	{
+		// If its ascendant has right descendants, search among them.
+		if( getRightDescendant() != nullptr )
+			setRightDescendant( getRightDescendant()->insert( data, key_order ) );
+		// Otherwise, insert it as right descendant.
 		else
-			tree_traversal.top()->setRightDescendant( leaf );
+		{
+			// Node to be inserted as leaf:
+			AvlTreeNode *leaf = new AvlTreeNode;
+			leaf->setKey( new_key );  // Set new node's key.
+			leaf->setHeight( 1 );     // Initial height.
+			leaf->setData( data );    // Node's data.
+
+			// Set leaf as right descendant.
+			setRightDescendant( leaf );
+		}
 	}
 
 	// Backtrack through traversed tree maintaining balancing factor of -1, 0 or 1.
-	while( !tree_traversal.empty() )
-	{
-		// Pop root node from the stack.
-		root = tree_traversal.top();
-		tree_traversal.pop();
 
-		// Update its height and balancing factor.
-		root->updateHeight();
-		root->updateFactor();
+	// Update node's height and balancing factor.
+	updateHeight();
+	updateFactor();
 
-		// If it's unbalanced, rotate node and get new root.
-		if( root->getFactor() > 1 || root->getFactor() < -1 )
-			root = root->rotate();
-
-		// Correct left and right descendants after possible rotations.
-		if( !tree_traversal.empty() &&
-				root->getKey() < tree_traversal.top()->getKey() )
-		{
-			tree_traversal.top()->setLeftDescendant( root );
-		}
-		else if( !tree_traversal.empty() )
-		{
-			tree_traversal.top()->setRightDescendant( root );
-		}
-	}
+	AvlTreeNode *root = this;
+	// If node's unbalanced, rotate it.
+	if( getFactor() > 1 || getFactor() < -1 )
+		root = rotate();
 
 	// Return tree's root recursively.
 	return root;
@@ -148,16 +124,16 @@ AvlTreeNode* AvlTreeNode::remove( StringHashData *data, SortBy key_order )
 	if( getKey() == remove_key && getData() == data )
 	{
 		// If both descendants exist:
-		if( getDescendants().first != nullptr &&
-				getDescendants().second != nullptr )
+		if( getLeftDescendant() != nullptr &&
+				getRightDescendant() != nullptr )
 		{
 			// Node with greatest key among left descendants.
-			AvlTreeNode *greatest = getDescendants().first->findGreatestKey();
+			AvlTreeNode *greatest = getLeftDescendant()->findGreatestKey();
 			setKey( greatest->getKey() );    // Node's new key. This removes node's old key.
 			setData( greatest->getData() );  // Node's new data. This removes node's old data.
 
 			// Remove node with greatest key among left descendants while linking modified nodes.
-			setLeftDescendant( getDescendants().first->remove( greatest->getData(), key_order ) );
+			setLeftDescendant( getLeftDescendant()->remove( greatest->getData(), key_order ) );
 
 			// Update node's height and balancing factor.
 			updateHeight();
@@ -174,10 +150,10 @@ AvlTreeNode* AvlTreeNode::remove( StringHashData *data, SortBy key_order )
 		}
 
 		// If only left descendant exists:
-		else if( getDescendants().first != nullptr )
+		else if( getLeftDescendant() != nullptr )
 		{
 			// Tree's root is left descendant node.
-			AvlTreeNode *new_root = getDescendants().first;
+			AvlTreeNode *new_root = getLeftDescendant();
 
 			// Deallocate memory used for node to be removed.
 			delete this;
@@ -187,10 +163,10 @@ AvlTreeNode* AvlTreeNode::remove( StringHashData *data, SortBy key_order )
 		}
 
 		// If only right descendant exists:
-		else if( getDescendants().second != nullptr )
+		else if( getRightDescendant() != nullptr )
 		{
 			// Tree's root is right descendant node.
-			AvlTreeNode *new_root = getDescendants().second;
+			AvlTreeNode *new_root = getRightDescendant();
 
 			// Deallocate memory used for node to be removed.
 			delete this;
@@ -211,19 +187,19 @@ AvlTreeNode* AvlTreeNode::remove( StringHashData *data, SortBy key_order )
 	}
 
 	// If remove_key is lower than current node, search among left descendants.
-	else if( getDescendants().first != nullptr && remove_key < getKey() )
-		setLeftDescendant( getDescendants().first->remove( data, key_order ) );
+	else if( getLeftDescendant() != nullptr && remove_key < getKey() )
+		setLeftDescendant( getLeftDescendant()->remove( data, key_order ) );
 	// If remove_key is greater than current node, search among right descendants.
-	else if( getDescendants().second != nullptr && remove_key > getKey() )
-		setRightDescendant( getDescendants().second->remove( data, key_order ) );
+	else if( getRightDescendant() != nullptr && remove_key > getKey() )
+		setRightDescendant( getRightDescendant()->remove( data, key_order ) );
 	// If remove_key is equal to current node, search among existing descendants.
-	else if( ( getDescendants().first != nullptr || getDescendants().second != nullptr ) &&
+	else if( ( getLeftDescendant() != nullptr || getRightDescendant() != nullptr ) &&
 				remove_key == getKey() )
 	{
-		if( getDescendants().first != nullptr )
-			setLeftDescendant( getDescendants().first->remove( data, key_order ) );
-		if( getDescendants().second != nullptr )
-			setRightDescendant( getDescendants().second->remove( data, key_order ) );
+		if( getLeftDescendant() != nullptr )
+			setLeftDescendant( getLeftDescendant()->remove( data, key_order ) );
+		if( getRightDescendant() != nullptr )
+			setRightDescendant( getRightDescendant()->remove( data, key_order ) );
 	}
 	// Otherwise, there are no descendants to search and remove_key isn't in the tree.
 	else
@@ -266,21 +242,21 @@ bool AvlTreeNode::search( StringHashData *data, SortBy key_order )
 			return true;
 		// If find_key is lower than current_node's key, search among left descendants.
 		else if( find_key < current_node->getKey() )
-			current_node = current_node->getDescendants().first;
+			current_node = current_node->getLeftDescendant();
 		// If find_key is greater than current_node's key, search among right descendants.
 		else if( find_key > current_node->getKey() )
-			current_node = current_node->getDescendants().second;
+			current_node = current_node->getRightDescendant();
 		// If find_key is equal to current_node's key, but has different data, search among
 		// existing descendants.
 		else
 		{
 			// Search among left descendants.
-			if( current_node->getDescendants().first != nullptr &&
-					current_node->getDescendants().first->search( data, key_order ) )
+			if( current_node->getLeftDescendant() != nullptr &&
+					current_node->getLeftDescendant()->search( data, key_order ) )
 				return true;
 			// Search among right descendants if data wasn't found in left descendants.
-			else if( current_node->getDescendants().second != nullptr &&
-					current_node->getDescendants().second->search( data, key_order ) )
+			else if( current_node->getRightDescendant() != nullptr &&
+					current_node->getRightDescendant()->search( data, key_order ) )
 				return true;
 			// Node wasn't found in the tree.
 			else
@@ -349,10 +325,16 @@ void AvlTreeNode::setRightDescendant( AvlTreeNode *right_node )
 
 }
 
-std::pair< AvlTreeNode*, AvlTreeNode* > AvlTreeNode::getDescendants()
+AvlTreeNode* AvlTreeNode::getLeftDescendant()
 {
-	// Return pair of left and right descendants.
-	return pair< AvlTreeNode*, AvlTreeNode* >( this->left_, this->right_ );
+	// Return node's left descendant.
+	return this->left_;
+}
+
+AvlTreeNode* AvlTreeNode::getRightDescendant()
+{
+	// Return node's right descendant.
+	return this->right_;
 }
 
 bool AvlTreeNode::setHeight( int height )
@@ -392,9 +374,9 @@ int AvlTreeNode::getFactor()
 void AvlTreeNode::updateHeight()
 {
 	// Left descendant node.
-	AvlTreeNode *left_node = getDescendants().first;
+	AvlTreeNode *left_node = getLeftDescendant();
 	// Right descendant node.
-	AvlTreeNode *right_node = getDescendants().second;
+	AvlTreeNode *right_node = getRightDescendant();
 
 	// If both descendants exist:
 	if( left_node != nullptr && right_node != nullptr )
@@ -419,9 +401,9 @@ void AvlTreeNode::updateHeight()
 void AvlTreeNode::updateFactor()
 {
 	// Left descendant node.
-	AvlTreeNode *left_node = getDescendants().first;
+	AvlTreeNode *left_node = getLeftDescendant();
 	// Right descendant node.
-	AvlTreeNode *right_node = getDescendants().second;
+	AvlTreeNode *right_node = getRightDescendant();
 
 	// If both descendants exist:
 	if( left_node != nullptr && right_node != nullptr )
@@ -448,8 +430,8 @@ AvlTreeNode* AvlTreeNode::findGreatestKey()
 	// Search for descendant node with greatest key.
 	while( !is_found )
 	{
-		if( getDescendants().second != nullptr )
-			greatest_node = greatest_node->getDescendants().second;
+		if( greatest_node->getRightDescendant() != nullptr )
+			greatest_node = greatest_node->getRightDescendant();
 		else
 			is_found = true;
 	}
@@ -461,7 +443,7 @@ AvlTreeNode* AvlTreeNode::findGreatestKey()
 AvlTreeNode* AvlTreeNode::rotate()
 {
 	// If node lacks a descendant, return unaltered node.
-	if( getDescendants().first == nullptr && getDescendants().second == nullptr )
+	if( getLeftDescendant() == nullptr && getRightDescendant() == nullptr )
 	{
 		AvlTreeNode *node = this;
 		return node;
@@ -471,8 +453,8 @@ AvlTreeNode* AvlTreeNode::rotate()
 	AvlTreeNode *root = nullptr;
 
 	// Descendants.
-	AvlTreeNode *left_node = getDescendants().first;
-	AvlTreeNode *right_node = getDescendants().second;
+	AvlTreeNode *left_node = getLeftDescendant();
+	AvlTreeNode *right_node = getRightDescendant();
 
 	// Rotate according to balancing factors of root and descendants.
 	// Simple rotation to the left:
@@ -505,13 +487,13 @@ AvlTreeNode* AvlTreeNode::rotate()
 AvlTreeNode* AvlTreeNode::rotateLeft()
 {
 	// Tree's root after rotating.
-	AvlTreeNode *new_root = getDescendants().second;
+	AvlTreeNode *new_root = getRightDescendant();
 
 	// Tree's original root.
 	AvlTreeNode *old_root = this;
 
 	// Left rotation linking adjustments.
-	setRightDescendant( new_root->getDescendants().first );
+	setRightDescendant( new_root->getLeftDescendant() );
 	new_root->setLeftDescendant( old_root );
 
 	// Updates modified node's height and balancing factor.
@@ -525,13 +507,13 @@ AvlTreeNode* AvlTreeNode::rotateLeft()
 AvlTreeNode* AvlTreeNode::rotateRight()
 {
 	// Tree's root after rotating.
-	AvlTreeNode *new_root = getDescendants().first;
+	AvlTreeNode *new_root = getLeftDescendant();
 
 	// Tree's original root.
 	AvlTreeNode *old_root = this;
 
 	// Right rotation linking adjustments.
-	setLeftDescendant( new_root->getDescendants().second );
+	setLeftDescendant( new_root->getRightDescendant() );
 	new_root->setRightDescendant( old_root );
 
 	// Updates modified node's height and balancing factor.

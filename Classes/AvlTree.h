@@ -75,13 +75,13 @@ public:
 	 * Print rank_size words with the greatest keys.
 	 *  @param rank_size Amount of words in ranking list.
 	 */
-	void printGreatestKeys( unsigned rank_size );
+	void printGreatestKeys( unsigned rank_size );				// TODO: print with pauses for big numbers.
 
 	/**
 	 * Print rank_size words with the lowest keys.
 	 *  @param rank_size Amount of words in ranking list.
 	 */
-	void printLowestKeys( unsigned rank_size );
+	void printLowestKeys( unsigned rank_size );					// TODO: print with pauses for big numbers.
 
 private:
 	/**
@@ -92,10 +92,6 @@ private:
 
 	AvlTreeNode *root_; // AVL tree's root.
 	SortBy key_order_;  // Sorting order of keys.
-
-	//int height_;  // TODO: get tree's height.
-	//int factor_;  // TODO: get tree's balancing factor.
 };
-
 
 #endif /* AVLTREE_H_ */

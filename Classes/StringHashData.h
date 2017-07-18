@@ -21,8 +21,8 @@ public:
 	StringHashData();
 
 	/**
-	 * Constructor: sets hash table position as free, sets word (satellite data) initialized
-	 * with its score in the phrase.
+	 * Constructor: sets hash table position as free, sets word (satellite data) and
+	 * initialize it with its score in the phrase.
 	 *  @param word String to be inserted.
 	 *  @param phrase_score Overall score of phrase where this word was written.
 	 */
@@ -32,8 +32,7 @@ public:
 	 * Set key and word data.
 	 *  @param word String to be inserted.
 	 *  @param phrase_score Overall score of phrase where this word was written.
-	 *  @return True if inserted or previously inserted (in which case score and quantity,
-	 *          are recalculated), false if there were any collisions.
+	 *  @return True if inserted, false it was already inserted..
 	 */
 	bool insert( std::string word, double phrase_score );
 
@@ -41,11 +40,6 @@ public:
 	 * Remove satellite data and reset score and frequency.
 	 */
 	void remove();
-
-	/**
-	 * Clear all data, including was_occupied flag.
-	 */
-	void clear();
 
 	/**
 	 * Recalculate score of expressed feelings with phrase_score.
@@ -76,12 +70,6 @@ public:
 	 */
 	unsigned getFrequency();
 
-	/**
-	 * Check if this position has been previously occupied by any satellite data.
-	 *  @return True if it was (or still is) occupied, false otherwise.
-	 */
-	bool wasOccupied();
-
 private:
 	/**
 	 * Set this word's score of expressed feelings.
@@ -106,9 +94,6 @@ private:
 
 	double score_;        // Score for expressed feelings.
 	unsigned frequency_;  // Amount of times word was found in reviews.
-
-	bool was_occupied_;   // Indicate if key_ position in hash table was occupied at least once.
 };
-
 
 #endif /* STRINGHASHDATA_H_ */

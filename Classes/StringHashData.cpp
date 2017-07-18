@@ -16,9 +16,6 @@ StringHashData::StringHashData()
 {
 	this->score_ = 0.0;   // Initial score.
 	this->frequency_ = 0; // No frequency.
-
-	// Indicate that position hasn't been used yet.
-	this->was_occupied_ = false;
 }
 
 StringHashData::StringHashData( std::string word, double phrase_score )
@@ -27,9 +24,6 @@ StringHashData::StringHashData( std::string word, double phrase_score )
 
 	this->score_ = phrase_score;  // Set initial score as phrase's score.
 	this->frequency_ = 1;         // Initial frequency.
-
-	// Indicate that position has been used already.
-	this->was_occupied_ = true;
 }
 
 bool StringHashData::insert( std::string word, double phrase_score )
@@ -43,9 +37,6 @@ bool StringHashData::insert( std::string word, double phrase_score )
 		incrementFrequency();
 		// Set initial score as phrase_score.
 		setScore( phrase_score );
-
-		// Set position as already occupied.
-		this->was_occupied_ = true;
 
 		// Indicate word was inserted.
 		return true;
@@ -64,15 +55,6 @@ void StringHashData::remove()
 	setScore( 0.0 );
 	// Reset frequency to zero.
 	resetFrequency();
-}
-
-void StringHashData::clear()
-{
-	// Remove satellite data and reset score and frequency.
-	remove();
-
-	// Reset was_occupied flag.
-	this->was_occupied_ = false;
 }
 
 bool StringHashData::recalculateScore( double phrase_score )
@@ -131,13 +113,6 @@ unsigned StringHashData::getFrequency()
 {
 	// Return word's frequency.
 	return this->frequency_;
-}
-
-
-bool StringHashData::wasOccupied()
-{
-	// Check if this position has been occupied at least once.
-	return this->was_occupied_;
 }
 
 bool StringHashData::setScore( double score )

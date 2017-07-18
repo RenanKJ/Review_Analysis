@@ -126,10 +126,10 @@ void AvlTree::printGreatestKeys( unsigned rank_size )
 
 		// If last word wasn't in the right descendant and there're right descendants,
 		// search for greater key among right descendants.
-		else if( tree_traversal.top()->getDescendants().second != nullptr &&
-				tree_traversal.top()->getDescendants().second->getData()->getWord() != last_word )
+		else if( tree_traversal.top()->getRightDescendant() != nullptr &&
+				tree_traversal.top()->getRightDescendant()->getData()->getWord() != last_word )
 		{
-			tree_traversal.push( tree_traversal.top()->getDescendants().second );
+			tree_traversal.push( tree_traversal.top()->getRightDescendant() );
 		}
 
 		// There're no more right descendants:
@@ -143,11 +143,11 @@ void AvlTree::printGreatestKeys( unsigned rank_size )
 
 			// If last word wasn't in the left descendant and there're left descendants,
 			// search for next greater key among left descendants.
-			if( tree_traversal.top()->getDescendants().first != nullptr &&
-					tree_traversal.top()->getDescendants().first->getData()->getWord() != last_word )
+			if( tree_traversal.top()->getLeftDescendant() != nullptr &&
+					tree_traversal.top()->getLeftDescendant()->getData()->getWord() != last_word )
 			{
 				printed_words.push( tree_traversal.top()->getData()->getWord() );
-				tree_traversal.push( tree_traversal.top()->getDescendants().first );
+				tree_traversal.push( tree_traversal.top()->getLeftDescendant() );
 			}
 			// Left and right descendants have been checked or do not exist, keep backtracking.
 			else
@@ -200,10 +200,10 @@ void AvlTree::printLowestKeys( unsigned rank_size )
 
 		// If last word wasn't in the left descendant and there're left descendants,
 		// search for lower key among left descendants.
-		else if( tree_traversal.top()->getDescendants().first != nullptr &&
-				tree_traversal.top()->getDescendants().first->getData()->getWord() != last_word )
+		else if( tree_traversal.top()->getLeftDescendant() != nullptr &&
+				tree_traversal.top()->getLeftDescendant()->getData()->getWord() != last_word )
 		{
-			tree_traversal.push( tree_traversal.top()->getDescendants().first );
+			tree_traversal.push( tree_traversal.top()->getLeftDescendant() );
 		}
 
 		// There're no more left descendants:
@@ -217,11 +217,11 @@ void AvlTree::printLowestKeys( unsigned rank_size )
 
 			// If last word wasn't in the right descendant and there're right descendants,
 			// search for next lower key among right descendants.
-			if( tree_traversal.top()->getDescendants().second != nullptr &&
-					tree_traversal.top()->getDescendants().second->getData()->getWord() != last_word )
+			if( tree_traversal.top()->getRightDescendant() != nullptr &&
+					tree_traversal.top()->getRightDescendant()->getData()->getWord() != last_word )
 			{
 				printed_words.push( tree_traversal.top()->getData()->getWord() );
-				tree_traversal.push( tree_traversal.top()->getDescendants().second );
+				tree_traversal.push( tree_traversal.top()->getRightDescendant() );
 			}
 			// Left and right descendants have been checked or do not exist, keep backtracking.
 			else

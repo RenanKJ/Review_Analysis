@@ -11,8 +11,6 @@
 #include <stack>
 #include <cmath>
 #include "StringHashTable.h"
-// DEBUG:
-#include <iostream>
 
 using namespace std;
 
@@ -44,11 +42,10 @@ bool StringHashTable::insert( std::string word, double phrase_score, unsigned *k
 		// If hash table at hash_num is free, insert data.
 		if( isFree( hash_num ) )
 		{
-			//StringHashData *new_data = new StringHashData;
-			//new_data->insert( word, phrase_score );
-			//setData( new_data, hash_num );
+			// Create object to put data.
+			setData( new StringHashData, hash_num );
 
-			// Place word and score in satellite data.
+			// Put word and score in satellite data.
 			getData( hash_num )->insert( word, phrase_score );
 
 			// If requested, return key to this word as well.
@@ -62,9 +59,8 @@ bool StringHashTable::insert( std::string word, double phrase_score, unsigned *k
 			// Obtain an empty position using Double Hashing.
 			hash_num = solveCollision( word );
 
-			//StringHashData *new_data = new StringHashData;
-			//new_data->insert( word, phrase_score );
-			//setData( new_data, hash_num );
+			// Create object to put data.
+			setData( new StringHashData, hash_num );
 
 			// Place word and score in satellite data.
 			getData( hash_num )->insert( word, phrase_score );
@@ -109,7 +105,7 @@ bool StringHashTable::search( std::string word, unsigned *key )
 
 	// Search for word until either it's found or a position that wasn't
 	// previously occupied is found.
-	while( !is_found && getData( hash_num )->wasOccupied() )
+	while( !is_found && getData( hash_num ) != nullptr )
 	{
 		// If word has been found, indicate so.
 		if( getData( hash_num )->getWord() == word )
@@ -149,7 +145,7 @@ void StringHashTable::remove( std::string word )
 StringHashData* StringHashTable::getData( unsigned key )
 {
 	// Return pointer to satellite data at position key.
-	return &( this->table_.at( key ) );
+	return this->table_.at( key );
 }
 
 unsigned StringHashTable::getSize()
@@ -182,7 +178,7 @@ unsigned StringHashTable::getCollisionsNum()
 	return this->collisions_;
 }
 
-void StringHashTable::setData( StringHashData data, unsigned key )
+void StringHashTable::setData( StringHashData *data, unsigned key )
 {
 	// Assign data to hash table's position.
 	this->table_.at( key ) = data;
@@ -191,22 +187,33 @@ void StringHashTable::setData( StringHashData data, unsigned key )
 void StringHashTable::clear( unsigned key )
 {
 	// Clear hash table's position.
-	this->table_.at( key ).clear();
+	delete this->table_.at( key );
+
+	this->table_.at( key ) = nullptr;
 }
 
 unsigned StringHashTable::hash( std::string word )
 {
-	unsigned hash_num = 0;    // Hash result for word = h( word ).
-	const unsigned prime = 5; // Prime number for polynomial hashing function.
-	unsigned power = 0;       // Power to raise prime to.
+	unsigned hash_num = 0;     // Hash result for word = h( word ).
+	const unsigned prime = 7;  // Prime number for polynomial hashing function.
+	unsigned power = 1;        // Power to raise prime to.
 
 	// Iterator to get each character from word.
 	string::iterator letter = word.begin();
 	// Calculate hash for word using each character.
 	while( letter != word.end() )
 	{
+		long long unsigned prime_raised = prime;
+
+		// Calculate prime raised to power % getSize().
+		for( unsigned p = 1; p < power; ++p )
+		{
+			prime_raised *= prime_raised;
+			prime_raised %= 1000000007;
+		}
+
 		// h( word ) = c * p^i  |  c is a character from word; p is a prime number; i is a counter starting at 0.
-		hash_num += *letter * pow( prime, power );
+		hash_num += *letter * prime_raised;
 
 		// If h( word ) is currently greater than hash's size, calculate modulus by size.
 		if( hash_num > getSize() )
@@ -224,21 +231,32 @@ unsigned StringHashTable::hash( std::string word )
 
 unsigned StringHashTable::doubleHash( std::string word, unsigned round )
 {
-	unsigned hash_num = round; // Hash result for word = h( word ).
-	const unsigned prime = 13; // Prime number for polynomial hashing function.
-	unsigned power = 0;        // Power to raise prime to.
+	long long unsigned hash_num = hash( word); // Hash result for word = h( word ).
+	// Prime number for polynomial hashing function.
+	const unsigned prime = findNextPrime( 13 * round );
+	unsigned power = 1;        // Power to raise prime to.
 
 	// Iterator to get each character from word.
 	string::iterator letter = word.begin();
 	// Calculate hash for word using each character.
 	while( letter != word.end() )
 	{
+		// Prime raised to power.
+		long long unsigned prime_raised = prime;
+
+		// Calculate prime raised to power % getSize().
+		for( unsigned p = 1; p < power; ++p )
+		{
+			prime_raised *= prime_raised;
+			prime_raised %= 1000000007;
+		}
+
 		// h( word ) = c * p^i  |  c is a character from word; p is a prime number; i is a counter starting at 0.
-		hash_num += *letter * pow( prime, power );
+		hash_num += *letter * prime_raised * round;
 
 		// If h( word ) is currently greater than hash's size, calculate modulus by size.
-		if( hash_num > getSize() )
-			hash_num %= getSize();
+		if( hash_num > 1000000007 )
+			hash_num %= 1000000007;
 
 		// Increment iterator.
 		++letter;
@@ -247,7 +265,7 @@ unsigned StringHashTable::doubleHash( std::string word, unsigned round )
 	}
 
 	// Return h( word ).
-	return hash_num;
+	return hash_num % getSize();
 }
 
 unsigned StringHashTable::solveCollision( std::string word )
@@ -262,7 +280,7 @@ unsigned StringHashTable::solveCollision( std::string word )
 		this->collisions_++;
 		// Calculate hash for word using a second hashing function.
 		hash_num = doubleHash( word, round );
-		// Increment amount of times doubleHash() was called.
+		// Increment amount of times hashing function was called.
 		++round;
 	} while( !isFree( hash_num ) );
 
@@ -273,7 +291,7 @@ unsigned StringHashTable::solveCollision( std::string word )
 bool StringHashTable::isFree( unsigned key )
 {
 	// Return true if space is free or false otherwise.
-	return getData( key )->getWord().empty();
+	return getData( key ) == nullptr;
 }
 
 
@@ -327,7 +345,7 @@ void StringHashTable::rehash()
 			reinsert( i, reinserted );
 
 		// If there's no element in this position, but it was previously occupied, clear it.
-		else if( isFree( i ) && getData( i )->wasOccupied() )
+		else if( isFree( i ) && getData( i ) == nullptr )
 			clear( i );
 	}
 }
@@ -335,15 +353,15 @@ void StringHashTable::rehash()
 void StringHashTable::reinsert( unsigned key, AvlTree &reinserted )
 {
 	// Copy of data to be reinserted.
-	StringHashData data_copy = *( getData( key ) );
+	StringHashData *data_copy = getData( key );
 	// Amount of times hashing function was called.
 	unsigned round = 1;
 
 	// Completely remove data from the hash table at key.
-	clear( key );
+	setData( nullptr, key );
 
 	// Calculate hashing function for word at position key.
-	unsigned hash_num = hash( data_copy.getWord() );
+	unsigned hash_num = hash( data_copy->getWord() );
 
 	// Indicate data was reinserted.
 	bool was_reinserted = false;
@@ -367,7 +385,7 @@ void StringHashTable::reinsert( unsigned key, AvlTree &reinserted )
 		// Otherwise, it is occupied and a collision occurred - recalculate hash value.
 		else
 		{
-			hash_num = doubleHash( data_copy.getWord(), round );
+			hash_num = doubleHash( data_copy->getWord(), round );
 			++round;
 		}
 	}

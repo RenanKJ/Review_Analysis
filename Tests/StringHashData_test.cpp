@@ -36,14 +36,12 @@ int main()
 			<< fixed << setprecision( 2 ) << boolalpha
 			<< "\nScore     = " << D0.getScore( true, &score_range ) << " : " << score_range
 			<< "\nFrequency = " << D0.getFrequency()
-			<< "\nOccupied? = " << D0.wasOccupied()
 			<< endl;
 
 	cout << "\nD1:\n"
 			<< "Data      = " << D1.getWord()
 			<< "\nScore     = " << D1.getScore( true, &score_range ) << " : " << score_range
 			<< "\nFrequency = " << D1.getFrequency()
-			<< "\nOccupied? = " << D1.wasOccupied()
 			<< endl;
 
 	// insert() method.
@@ -54,7 +52,6 @@ int main()
 			<< "Data      = " << D0.getWord()
 			<< "\nScore     = " << D0.getScore( true, &score_range ) << " : " << score_range
 			<< "\nFrequency = " << D0.getFrequency()
-			<< "\nOccupied? = " << D0.wasOccupied()
 			<< endl;
 
 	// remove() method.
@@ -65,18 +62,6 @@ int main()
 			<< "Data      = " << D0.getWord()
 			<< "\nScore     = " << D0.getScore( true, &score_range ) << " : " << score_range
 			<< "\nFrequency = " << D0.getFrequency()
-			<< "\nOccupied? = " << D0.wasOccupied()
-			<< endl;
-
-	// clear() method test.
-	D1.clear();
-
-	// Print attributes.
-	cout << "\nD1.clear():\n"
-			<< "Data      = " << D1.getWord()
-			<< "\nScore     = " << D1.getScore( true, &score_range ) << " : " << score_range
-			<< "\nFrequency = " << D1.getFrequency()
-			<< "\nOccupied? = " << D1.wasOccupied()
 			<< endl;
 
 	// recalculate() method.
@@ -89,7 +74,6 @@ int main()
 			<< "Data      = " << D0.getWord()
 			<< "\nScore     = " << D0.getScore( true, &score_range ) << " : " << score_range
 			<< "\nFrequency = " << D0.getFrequency()
-			<< "\nOccupied? = " << D0.wasOccupied()
 			<< endl;
 
 	cout << "> StringHashData : end of main()" << endl;

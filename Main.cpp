@@ -1,6 +1,8 @@
 /**
  * Analizes film reviews and classifies them according to expressed feelings.
  *
+ *   Version 1.0: Basic functionality.
+ *
  *   Created on: July 16th, 2017
  *      Authors: Aline Weber
  *               Renan Kummer

@@ -12,7 +12,6 @@
 
 // Libraries:
 #include <iostream>
-#include <forward_list>
 #include <string>
 #include <stack>
 #include "../Classes/AvlTree.h"
@@ -23,11 +22,11 @@ using namespace std;
 // Print AVL tree using left-right-center traversal.
 void printAvlTree( AvlTreeNode *node )
 {
-	if( node->getDescendants().first != nullptr )
-		printAvlTree( node->getDescendants().first );
+	if( node->getLeftDescendant() != nullptr )
+		printAvlTree( node->getLeftDescendant() );
 
-	if( node->getDescendants().second != nullptr )
-		printAvlTree( node->getDescendants().second );
+	if( node->getRightDescendant() != nullptr )
+		printAvlTree( node->getRightDescendant() );
 
 	cout << node->getKey() << " ";
 }
@@ -87,7 +86,7 @@ int main()
 	tree.remove( &d2 );
 	tree.remove( &d3 );
 
-	cout << "\n\ntree.remove(...):\n";
+	cout << "\ntree.remove(...):\n";
 
 	// Check if keys were removed.
 	if( tree.isEmpty() )
