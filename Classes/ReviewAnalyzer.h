@@ -66,10 +66,18 @@ public:
 	/**
 	 * Command "analyze": analyze a review's overall feeling.
 	 *  @param review Text to be analyzed.
+	 *  @param score Text's score after analysis (optional).
+	 *  @param print Indicate if result must be printed (optional).
 	 *  @return True if at least one word was in the database, false otherwise.
 	 */
-	bool analyze( std::string review );
+	bool analyze( std::string review, double *score = nullptr, bool print = true );
 
+    /**
+     * Command "analyzef": analyze a file of reviews and output results in "analysis.csv".
+     *  @param file_name Name of reviews' file.
+     *  @return True if analyzed, false otherwise.
+     */
+     bool analyzeFile( std::string file_name, bool print = false );
 	/**
 	 * Insert word in database.
 	 *  @param word Word to be inserted.

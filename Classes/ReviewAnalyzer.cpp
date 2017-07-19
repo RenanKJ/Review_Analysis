@@ -94,6 +94,22 @@ int ReviewAnalyzer::run()
 			}
 		}
 
+		// If command is "analyzef".
+		else if( command == "analyzef" )
+        {
+			// Read argument (file name).
+			string file_name = readArgument();
+
+			// If no argument was provided, print message.
+			if( file_name.empty() )
+				cout << "Command requires argument. Enter \"help\" to list commands." << endl;
+			// Otherwise, call "read" command.
+			else if( !analyzeFile( file_name ) )
+				cout << "Couldn't open file. Wrong file path or format." << endl;
+			else
+				cout << "Success." << endl;
+        }
+
 		// If command is "print+":
 		else if( command == "print+" )
 		{
@@ -231,7 +247,7 @@ std::string ReviewAnalyzer::readCommand()
 	// Validate command.
 	if( command == "analyze" || command == "help" || command == "read" ||
 			command == "print+" || command == "print-" || command == "printf" ||
-			command == "exit" || command == "quit" )
+			command == "analyzef" || command == "exit" || command == "quit" )
 	{
 		// Command is valid.
 		return command;
@@ -281,13 +297,14 @@ void ReviewAnalyzer::printCommands()
 	cout << "-- Commands list --\n";
 
 	// Print command and description.
-	cout <<  "read     <filename>  : read file and store words in database\n"
-			<< "analyze  <text>      : analyzes the overall emotion of <text>\n"
-			<< "print+   <amount>    : print <amount> most positive words in database\n"
-			<< "print-   <amount>    : print <amount> most negative words in database\n"
-			<< "printf   <amount>    : print <amount> most frequent words in database\n"
-			<< "help                 : print list of commands\n"
-			<< "exit                 : ends program\n"
+	cout <<  "read      <filename>  : read file and store words in database\n"
+			<< "analyze   <text>      : analyzes the overall emotion of <text>\n"
+			<< "analyzef  <filename>  : analyzes reviews from <filename>\n"
+			<< "print+    <amount>    : print <amount> most positive words in database\n"
+			<< "print-    <amount>    : print <amount> most negative words in database\n"
+			<< "printf    <amount>    : print <amount> most frequent words in database\n"
+			<< "help                  : print list of commands\n"
+			<< "exit                  : ends program\n"
 			<< "--  End of list  --"
 			<< endl;
 }
@@ -357,16 +374,16 @@ bool ReviewAnalyzer::readFile( std::string file_name )		// TODO: exception handl
 	return true;
 }
 
-bool ReviewAnalyzer::analyze( std::string review )
+bool ReviewAnalyzer::analyze( std::string review, double *score, bool print )
 {
 	// Stream to get each word from the text.
 	istringstream text( review );
 
-	string word; 	 // Words from the text.
+	string word; 	// Words from the text.
 	unsigned key;   // Key to word in database.
 	unsigned words_amount = 0;  // Amount of words for the score.
-	double score = 0;				 // Score of review.
-	bool has_word = false;		 // Indicate a word has been found in database.
+	double review_score = 0;    // Score of review.
+	bool has_word = false;		// Indicate a word has been found in database.
 
 	// Read the entire text word by word.
 	while( !text.eof() )
@@ -383,7 +400,7 @@ bool ReviewAnalyzer::analyze( std::string review )
 			// Increment amount of words.
 			++words_amount;
 			// Add word's score to total so far.
-			score += getSatelliteData( key )->getScore();
+			review_score += getSatelliteData( key )->getScore();
 		}
 	}
 
@@ -391,34 +408,122 @@ bool ReviewAnalyzer::analyze( std::string review )
 	if( has_word )
 	{
 		// Calculate review's score.
-		score = score / words_amount;
+		review_score = review_score / words_amount;
 
-		// Print results.
-		cout << fixed << setprecision( 2 )
+        // Return score if requested.
+        if( score != nullptr )
+            *score = review_score;
+
+        // Print results if requested.
+		if( print )
+		{
+            cout << fixed << setprecision( 2 )
 				<< "--     Score    --\n";
 
-		if( score < 0.95 )
-			cout << "You better avoid it!\n" << score << " / 4.00 - Awful";
-		else if( score < 1.95 )
-			cout << "Maybe when you've got nothing better to do?\n" << score << " / 4.00 - Bad";
-		else if( score < 2.95 )
-			cout << "Nothing remarkable, but not bad either.\n" << score << " / 4.00 - OK";
-		else if( score < 3.95 )
-			cout << "Recommended! Nice one!\n" << score << " / 4.00 - Good";
-		else
-			cout << "As perfect as it can be!\n" << score << " / 4.00 - Excellent";
+            if( review_score < 0.95 )
+                cout << "You better avoid it!\n" << review_score << " / 4.00 - Awful";
+            else if( review_score < 1.95 )
+                cout << "Maybe when you've got nothing better to do?\n" << review_score << " / 4.00 - Bad";
+            else if( review_score < 2.95 )
+                cout << "Nothing remarkable, but not bad either.\n" << review_score << " / 4.00 - OK";
+            else if( review_score < 3.95 )
+                cout << "Recommended! Nice one!\n" << review_score << " / 4.00 - Good";
+            else
+                cout << "As perfect as it can be!\n" << review_score << " / 4.00 - Excellent";
 
-		cout << "\n-- End of score --" << endl;
+            cout << "\n-- End of score --" << endl;
+		}
 	}
-	// Otherwise, print message.
+
 	else
 	{
-		cout << "--    Result     --\n"
-				<< "Oops, our database lacks enough information to calculate your review's score.\n"
-				<< "-- End of result --" << endl;
+	    // Return score if requested.
+	    if( score != nullptr )
+            *score = 2;
+
+        // Print results if requested.
+	    if( print )
+	    {
+            cout << "--    Result     --\n"
+                    << "Oops, our database lacks enough information to calculate your review's score.\n"
+                    << "-- End of result --" << endl;
+	    }
 	}
 
 	return has_word;
+}
+
+bool ReviewAnalyzer::analyzeFile( std::string file_name, bool print )
+{
+    // Add ".tsv" to file_name if user didn't write it.
+	string extension;
+	if( file_name.size() >= 5 )
+		extension = file_name.substr( file_name.size() - 4, 4 );
+	if( extension != ".tsv" )
+		file_name = file_name + ".tsv";
+
+	// Print message.
+	cout << "Attempting to open file \"" << file_name << "\".\n";
+
+	// File to be read.
+	ifstream input_file;
+
+	// Attempt to open file.
+	input_file.open( file_name );
+	// Validate file path.
+	if( !input_file.is_open() )
+		return false;
+
+	// Print message.
+	cout << "Analyzing reviews...\n";
+
+    // ID of phrase.
+    unsigned phrase_id;
+    // ID of sentence.
+    unsigned sentence_id;
+
+	// Review's overall feeling.
+	double score;
+	// Review's text.
+	string review;
+
+    // Output file.
+    ofstream output_file;
+    // Open output file.
+    output_file.open( "results.csv" );
+    // Output header line.
+    output_file << "PhraseId,Sentiment" << endl;
+
+    // Read first line (header), ignoring it.
+    getline( input_file, review );
+
+	// Read entire file, line by line.
+	while( !input_file.eof() )
+	{
+		// Read phrase id.
+		input_file >> phrase_id;
+		// Read sentence id.
+		input_file >> sentence_id;
+		// Read review.
+		getline( input_file, review );
+
+		// Analyze line.
+		analyze( review, &score, false );
+
+		// Output phrase_id.
+		output_file << phrase_id << ",";
+		// Output score.
+		output_file << static_cast< int >( score );
+
+		if( !input_file.eof() )
+            output_file << endl;
+	}
+
+	// Close files.
+	output_file.close();
+	input_file.close();
+
+	return true;
 }
 
 bool ReviewAnalyzer::insert( std::string word, double phrase_score, unsigned *key )
@@ -469,7 +574,7 @@ StringHashData* ReviewAnalyzer::getSatelliteData( unsigned key )
 bool ReviewAnalyzer::filterWord( std::string &word )
 {
 	// If word is a punctuation mark, it can't be inserted.
-	if( word.at( 0 ) == '.' || word.at( 0 ) == ',' || word.at( 0 ) == ';' ||
+	if( word.empty() || word.at( 0 ) == '.' || word.at( 0 ) == ',' || word.at( 0 ) == ';' ||
 			word.at( 0 ) == ':' || word.at( 0 ) == '\"' || word.at( 0 ) == '?' ||
 			word.at( 0 ) == '!' || word.at( 0 ) == '-' || word.at( 0 ) == '\'' ||
 			word.at( 0 ) == '\t' || word.at( 0 ) == '\n' || word.at( 0 ) == ' ' )	// TODO: any more punctuation marks?
