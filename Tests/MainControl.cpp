@@ -14,4 +14,6 @@
 //#define STRINGHASHDATA_TEST_
 //#define AVLTREENODE_TEST_
 //#define AVLTREE_TEST_
+//#define TRIENODE_TEST_
+//#define TRIE_TEST_
 //#define STRINGHASHTABLE_TEST_
