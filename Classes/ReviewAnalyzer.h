@@ -138,6 +138,21 @@ private:
 	bool filterWord( std::string &word );
 
 	/**
+	 * Read stopwords from a file.
+	 *  @param file_name Name of file with stopwords.
+	 *  @result True if file was read, false otherwise.
+	 */
+	bool readStopwords( std::string file_name );
+
+	/**
+	 * Check if a word is a stopword.
+	 *  @param word Word to be evaluated.
+	 *  @return True if it is, false otherwise.
+	 *  @attention False means it isn't in stopwords' database.
+	 */
+	bool isStopword( std::string word );
+
+	/**
 	 * Update words' score and ranking.
 	 *  @param satellite_data Word to be inserted or updated in ranking tree.
 	 *  @param new_score Satellite data's next score.
@@ -166,6 +181,9 @@ private:
 	// Ranking trees.
 	AvlTree score_ranking_;
 	AvlTree frequency_ranking_;
+
+	// Stopwords to filter.
+	StringHashTable stopwords_;
 };
 
 #endif /* REVIEWANALYZER_H_ */

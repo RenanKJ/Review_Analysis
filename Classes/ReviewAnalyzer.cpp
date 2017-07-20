@@ -13,6 +13,7 @@
 #include <sstream>
 #include <locale>
 #include <stack>
+#include <cmath>
 #include "ReviewAnalyzer.h"
 
 using namespace std;
@@ -20,10 +21,12 @@ using namespace std;
 
 ReviewAnalyzer::ReviewAnalyzer( unsigned hash_size )
 	: database_( hash_size ),   // Initialize hash table with given size.
-	  score_ranking_( SortBy::SCORE ),        // Sort AVL Tree by score.
-	  frequency_ranking_( SortBy::FREQUENCY ) // Sort AVL Tree by frequency.
+	  score_ranking_( SortBy::SCORE ),         // Sort AVL Tree by score.
+	  frequency_ranking_( SortBy::FREQUENCY ), // Sort AVL Tree by frequency.
+     stopwords_( 1000 )        // Initialize stopwords' hash table.
 {
-	// Empty body.
+	// Read stopwords.
+	readStopwords( "stopwords.txt" );
 }
 
 int ReviewAnalyzer::run()
@@ -96,7 +99,7 @@ int ReviewAnalyzer::run()
 
 		// If command is "analyzef".
 		else if( command == "analyzef" )
-        {
+		{
 			// Read argument (file name).
 			string file_name = readArgument();
 
@@ -108,7 +111,7 @@ int ReviewAnalyzer::run()
 				cout << "Couldn't open file. Wrong file path or format." << endl;
 			else
 				cout << "Success." << endl;
-        }
+		}
 
 		// If command is "print+":
 		else if( command == "print+" )
@@ -315,8 +318,11 @@ bool ReviewAnalyzer::readFile( std::string file_name )		// TODO: exception handl
 	string extension;
 	if( file_name.size() >= 5 )
 		extension = file_name.substr( file_name.size() - 4, 4 );
-	if( extension != ".txt" )
-		file_name = file_name + ".txt";
+	if( extension != ".txt" && extension != ".tsv" )
+	{
+		extension = ".txt";
+		file_name = file_name + extension;
+	}
 
 	// Print message.
 	cout << "Attempting to open file \"" << file_name << "\".\n";
@@ -338,13 +344,33 @@ bool ReviewAnalyzer::readFile( std::string file_name )		// TODO: exception handl
 	// Review's text.
 	string review;
 
+	// FOR KAGGLE ONLY: Ignore header line.
+	//getline( file, review );
+
 	// Read entire file, line by line.
 	while( !file.eof() )
 	{
+		// FOR KAGGLE ONLY:
+		//file >> feeling; // Ignore phrase id.
+		//file >> feeling; // Ignore sentence id.
+		//file.ignore();   // Ignore '\t'.
+
 		// Read feeling's number.
-		file >> feeling;
+		if( extension == ".txt" )
+			file >> feeling;
+
 		// Read review.
 		getline( file, review );
+
+		// FOR KAGGLE ONLY: Get score by converting ASCII to integer.
+		//string score_num;
+		//score_num.push_back( review.back() );
+		//if( score_num == "s" )
+		//	break;
+		//feeling = stoi( score_num );
+		//review.pop_back();	  // Remove score from string.
+		//if( review.back() == '\t' )
+		//	review.pop_back();  // Ignore '\t' in string.
 
 		// Words from review.
 		string word;
@@ -359,6 +385,9 @@ bool ReviewAnalyzer::readFile( std::string file_name )		// TODO: exception handl
 			// Get word.
 			line >> word;
 
+			// Change word to lowercase.
+			changeToLowercase( word );		// TODO: [2.2] IMPROVEMENT OVER WORDS WITH UPPERCASE LETTERS
+
 			// Filter punctuation characters and concatenated words.
 			if( !word.empty() && filterWord( word ) )
 			{
@@ -370,6 +399,9 @@ bool ReviewAnalyzer::readFile( std::string file_name )		// TODO: exception handl
 		}
 	}
 
+	// Close file.
+	file.close();
+
 	// File was successfully read.
 	return true;
 }
@@ -380,16 +412,19 @@ bool ReviewAnalyzer::analyze( std::string review, double *score, bool print )
 	istringstream text( review );
 
 	string word; 	// Words from the text.
-	unsigned key;   // Key to word in database.
+	unsigned key;  // Key to word in database.
 	unsigned words_amount = 0;  // Amount of words for the score.
 	double review_score = 0;    // Score of review.
-	bool has_word = false;		// Indicate a word has been found in database.
+	bool has_word = false;		 // Indicate a word has been found in database.
 
 	// Read the entire text word by word.
 	while( !text.eof() )
 	{
 		// Get a word.
 		text >> word;
+
+		// Change word to lowercase.
+		changeToLowercase( word );			// TODO: [2.2] IMPROVEMENT OVER WORDS WITH UPPERCASE LETTERS
 
 		// If it passes by the filter and it is in the database:
 		if( filterWord( word ) && search( word, &key ) )			// TODO: filterWord() may return two words in next version.
@@ -420,13 +455,13 @@ bool ReviewAnalyzer::analyze( std::string review, double *score, bool print )
             cout << fixed << setprecision( 2 )
 				<< "--     Score    --\n";
 
-            if( review_score < 0.95 )
+            if( review_score < 0.5 )
                 cout << "You better avoid it!\n" << review_score << " / 4.00 - Awful";
-            else if( review_score < 1.95 )
+            else if( review_score < 1.5 )
                 cout << "Maybe when you've got nothing better to do?\n" << review_score << " / 4.00 - Bad";
-            else if( review_score < 2.95 )
+            else if( review_score < 2.5 )
                 cout << "Nothing remarkable, but not bad either.\n" << review_score << " / 4.00 - OK";
-            else if( review_score < 3.95 )
+            else if( review_score < 3.5 )
                 cout << "Recommended! Nice one!\n" << review_score << " / 4.00 - Good";
             else
                 cout << "As perfect as it can be!\n" << review_score << " / 4.00 - Excellent";
@@ -455,7 +490,7 @@ bool ReviewAnalyzer::analyze( std::string review, double *score, bool print )
 
 bool ReviewAnalyzer::analyzeFile( std::string file_name, bool print )
 {
-    // Add ".tsv" to file_name if user didn't write it.
+	// Add ".tsv" to file_name if user didn't write it.
 	string extension;
 	if( file_name.size() >= 5 )
 		extension = file_name.substr( file_name.size() - 4, 4 );
@@ -477,25 +512,25 @@ bool ReviewAnalyzer::analyzeFile( std::string file_name, bool print )
 	// Print message.
 	cout << "Analyzing reviews...\n";
 
-    // ID of phrase.
-    unsigned phrase_id;
-    // ID of sentence.
-    unsigned sentence_id;
+	// ID of phrase.
+	unsigned phrase_id;
+	// ID of sentence.
+	unsigned sentence_id;
 
 	// Review's overall feeling.
 	double score;
 	// Review's text.
 	string review;
 
-    // Output file.
-    ofstream output_file;
-    // Open output file.
-    output_file.open( "results.csv" );
-    // Output header line.
-    output_file << "PhraseId,Sentiment" << endl;
+	// Output file.
+	ofstream output_file;
+	// Open output file.
+	output_file.open( "results.csv" );
+	// Output header line.
+	output_file << "PhraseId,Sentiment" << endl;
 
-    // Read first line (header), ignoring it.
-    getline( input_file, review );
+	// Read first line (header), ignoring it.
+	getline( input_file, review );
 
 	// Read entire file, line by line.
 	while( !input_file.eof() )
@@ -513,10 +548,10 @@ bool ReviewAnalyzer::analyzeFile( std::string file_name, bool print )
 		// Output phrase_id.
 		output_file << phrase_id << ",";
 		// Output score.
-		output_file << static_cast< int >( score );
+		output_file << round( score );
 
 		if( !input_file.eof() )
-            output_file << endl;
+			output_file << endl;
 	}
 
 	// Close files.
@@ -581,9 +616,56 @@ bool ReviewAnalyzer::filterWord( std::string &word )
 	{
 		return false;
 	}
+	// If word is a stopword, it can't be inserted.
+	else if( isStopword( word ) )			// TODO: [2.2] IMPROVEMENT OVER STOPWORDS
+		return false;
 
 	// Otherwise, it can be inserted.
 	return true;
+}
+
+bool ReviewAnalyzer::readStopwords( std::string file_name )
+{
+	// Add ".txt" to file_name if client didn't provide it.
+	string extension;
+	if( file_name.size() >= 5 )
+		extension = file_name.substr( file_name.size() - 4, 4 );
+	if( extension != ".txt" )
+		file_name = file_name + ".txt";
+
+	// File to be read.
+	ifstream file;
+
+	// Attempt to open file.
+	file.open( file_name );
+	// Validate file path.
+	if( !file.is_open() )
+		return false;
+
+	// Stopword to be filtered.
+	string stopword;
+
+	// Read entire file, line by line.
+	while( !file.eof() )
+	{
+		// Read review.
+		file >> stopword;
+
+		// Insert it in hash table.
+		this->stopwords_.insert( stopword, 0 );
+	}
+
+	// Close file.
+	file.close();
+
+	// File was successfully read.
+	return true;
+}
+
+bool ReviewAnalyzer::isStopword( std::string word )
+{
+	// Search for word in stopword hash table.
+	return this->stopwords_.search( word );
 }
 
 void ReviewAnalyzer::updateScore( StringHashData *satellite_data, double new_score )
@@ -660,5 +742,5 @@ void ReviewAnalyzer::changeToLowercase( std::string &word )
 
 	// Turn each letter in word into lowercase.
 	for( auto i = word.begin(); i != word.end(); ++i )
-		tolower( *i, global );
+		*i = tolower( *i, global );
 }
