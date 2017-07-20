@@ -370,7 +370,7 @@ bool ReviewAnalyzer::readFile( std::string file_name )
 	ifstream file;
 
 	// Attempt to open file.
-	file.open( file_name );
+	file.open( "Files/" + file_name );
 	// Validate file path.
 	if( !file.is_open() )
 		return false;
@@ -545,7 +545,7 @@ bool ReviewAnalyzer::analyzeFile( std::string file_name, bool print )
 	ifstream input_file;
 
 	// Attempt to open file.
-	input_file.open( file_name );
+	input_file.open( "Files/" + file_name );
 	// Validate file path.
 	if( !input_file.is_open() )
 		return false;
@@ -553,10 +553,15 @@ bool ReviewAnalyzer::analyzeFile( std::string file_name, bool print )
 	// Print message.
 	cout << "Analyzing reviews..." << endl;
 
+	// Remove extension from file_name.
+	file_name = file_name.substr( 0, file_name.size() - 4 );
+
 	// ID of phrase.
 	unsigned phrase_id;
 	// ID of sentence.
 	unsigned sentence_id;
+	// ID of last phrase read.
+	unsigned last_phrase;
 
 	// Review's overall feeling.
 	double score;
@@ -566,7 +571,7 @@ bool ReviewAnalyzer::analyzeFile( std::string file_name, bool print )
 	// Output file.
 	ofstream output_file;
 	// Open output file.
-	output_file.open( "results.csv" );
+	output_file.open( "Files/" + file_name + "_analysis.csv" );
 	// Output header line.
 	output_file << "PhraseId,Sentiment" << endl;
 
@@ -586,13 +591,19 @@ bool ReviewAnalyzer::analyzeFile( std::string file_name, bool print )
 		// Analyze line.
 		analyze( review, &score, false );
 
-		// Output phrase_id.
-		output_file << phrase_id << ",";
-		// Output score.
-		output_file << round( score );
+		if( phrase_id != last_phrase )
+		{
+			// Output phrase_id.
+			output_file << phrase_id << ",";
+			// Output score.
+			output_file << round( score );
 
-		if( !input_file.eof() )
-			output_file << endl;
+			if( !input_file.eof() )
+				output_file << endl;
+		}
+
+		// Assign last phrase's id.
+		last_phrase = phrase_id;
 	}
 
 	// Close files.
@@ -661,7 +672,7 @@ bool ReviewAnalyzer::getReviews( std::string word )
 		cout << "Listing reviews..." << endl;
 
 		// Output file.
-		ofstream file( word + "_review.csv" );
+		ofstream file( "Files/" + word + "_reviews.csv" );
 
 		// Data from hash table.
 		StringHashData *word_data = getSatelliteData( key );
@@ -709,7 +720,12 @@ bool ReviewAnalyzer::filterWord( std::string &word )
 	if( word.empty() || word.at( 0 ) == '.' || word.at( 0 ) == ',' || word.at( 0 ) == ';' ||
 			word.at( 0 ) == ':' || word.at( 0 ) == '\"' || word.at( 0 ) == '?' ||
 			word.at( 0 ) == '!' || word.at( 0 ) == '-' || word.at( 0 ) == '\'' ||
-			word.at( 0 ) == '\t' || word.at( 0 ) == '\n' || word.at( 0 ) == ' ' )
+			word.at( 0 ) == '\t' || word.at( 0 ) == '\n' || word.at( 0 ) == ' ' ||
+			word.at( 0 ) == '´' || word.at( 0 ) == '`' || word.at( 0 ) == '~' ||
+			word.at( 0 ) == '^' || word.at( 0 ) == '/' || word.at( 0 ) == '0' ||
+			word.at( 0 ) == '1' || word.at( 0 ) == '2' || word.at( 0 ) == '3' ||
+			word.at( 0 ) == '4' || word.at( 0 ) == '5' || word.at( 0 ) == '6' ||
+			word.at( 0 ) == '7' || word.at( 0 ) == '8' || word.at( 0 ) == '9' )
 	{
 		return false;
 	}
@@ -734,7 +750,7 @@ bool ReviewAnalyzer::readStopwords( std::string file_name )
 	ifstream file;
 
 	// Attempt to open file.
-	file.open( file_name );
+	file.open( "Files/" + file_name );
 	// Validate file path.
 	if( !file.is_open() )
 		return false;
