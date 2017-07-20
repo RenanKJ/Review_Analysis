@@ -1,7 +1,7 @@
 /**
- * Definitions of Trie class - implements an Trie data structure
+ * Definitions of Trie class - implements a Trie data structure.
  *
- *  Created on: July 7th, 2017
+ *  Created on: July 19th, 2017
  *     Authors: Aline Weber
  *              Renan Kummer
  */
@@ -19,7 +19,7 @@ public:
 	/**
 	 * Constructor: initializes Trie.
 	 */
-	Trie( );
+	Trie();
 
 	/**
 	 * Insert data into the Trie tree.

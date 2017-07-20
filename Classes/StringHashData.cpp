@@ -26,7 +26,7 @@ StringHashData::StringHashData( std::string word, double phrase_score )
 	this->frequency_ = 1;         // Initial frequency.
 }
 
-bool StringHashData::insert( std::string word, double phrase_score )
+bool StringHashData::insert( std::string word, double phrase_score, unsigned index )
 {
 	// If position is free, insert word:
 	if( getWord().empty() )
@@ -37,6 +37,8 @@ bool StringHashData::insert( std::string word, double phrase_score )
 		incrementFrequency();
 		// Set initial score as phrase_score.
 		setScore( phrase_score );
+		// Add review's index.
+		addIndex( index );
 
 		// Indicate word was inserted.
 		return true;
@@ -57,7 +59,7 @@ void StringHashData::remove()
 	resetFrequency();
 }
 
-bool StringHashData::recalculateScore( double phrase_score )
+bool StringHashData::recalculateScore( double phrase_score, unsigned index )
 {
 	// If phrase_score is valid (0.0 ~ 4.0):
 	if( phrase_score >= 0.0 && phrase_score <= 4.0 )
@@ -68,6 +70,8 @@ bool StringHashData::recalculateScore( double phrase_score )
 		incrementFrequency();
 		// Calculate and set new score.
 		setScore( sum_of_scores / static_cast< double >( getFrequency() ) );
+		// Add review's index.
+		addIndex( index );
 
 		// Indicate that score was recalculated.
 		return true;
@@ -115,6 +119,12 @@ unsigned StringHashData::getFrequency()
 	return this->frequency_;
 }
 
+std::vector< unsigned > StringHashData::getIndexes()
+{
+	// Return reviews' indexes.
+	return this->indexes_;
+}
+
 bool StringHashData::setScore( double score )
 {
 	// Assign score to this word's score if valid:
@@ -128,6 +138,28 @@ bool StringHashData::setScore( double score )
 
 	// Since score is invalid, return false.
 	return false;
+}
+
+bool StringHashData::addIndex( unsigned index )
+{
+	// Search for index in the vector.
+	bool is_inserted = false;
+	// Vector's index.
+	unsigned i = 0;
+	while( i < this->indexes_.size() && this->indexes_.at( i ) != index )
+	{
+		++i;
+	}
+
+	// If index is valid, insert it.
+	if( i == this->indexes_.size() )
+	{
+		this->indexes_.push_back( index );
+		is_inserted = true;
+	}
+
+	// If index is inserted, return true. Otherwise, return false.
+	return is_inserted;
 }
 
 void StringHashData::incrementFrequency()

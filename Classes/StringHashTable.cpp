@@ -28,7 +28,7 @@ StringHashTable::StringHashTable( unsigned size )
 	calculateMaxRate();
 }
 
-bool StringHashTable::insert( std::string word, double phrase_score, unsigned *key )
+bool StringHashTable::insert( std::string word, double phrase_score, unsigned index, unsigned *key )
 {
 	// Hash value for given satellite data.
 	unsigned hash_num;
@@ -46,7 +46,7 @@ bool StringHashTable::insert( std::string word, double phrase_score, unsigned *k
 			setData( new StringHashData, hash_num );
 
 			// Put word and score in satellite data.
-			getData( hash_num )->insert( word, phrase_score );
+			getData( hash_num )->insert( word, phrase_score, index );
 
 			// If requested, return key to this word as well.
 			if( key != nullptr )
@@ -63,7 +63,7 @@ bool StringHashTable::insert( std::string word, double phrase_score, unsigned *k
 			setData( new StringHashData, hash_num );
 
 			// Place word and score in satellite data.
-			getData( hash_num )->insert( word, phrase_score );
+			getData( hash_num )->insert( word, phrase_score, index );
 
 			// If requested, return key to this word as well.
 			if( key != nullptr )

@@ -1,7 +1,7 @@
 /**
- * Class AvlTree member-function definitions.
+ * Class Trie member-function definitions.
  *
- *  Created on: July 14th, 2017
+ *  Created on: July 19th, 2017
  *     Authors: Aline Weber
  *              Renan Kummer
  */
@@ -13,7 +13,6 @@
 #include "Trie.h"
 
 using namespace std;
-
 
 Trie::Trie()
 {
@@ -33,19 +32,24 @@ void Trie::insert( string word )
 
 bool Trie::search( string prefix )
 {
-	TrieNode* starting_node;
+	TrieNode* starting_node = getRoot();
 	// If Trie isn't empty
-	if( !isEmpty() ){
+	if( !isEmpty() )
+	{
 		// Search the node where the prefix ends
-		if(prefix == ""){
-			starting_node->printAll(prefix, this->root_);
+		if( prefix == "" )
+		{
+			starting_node->printAll( prefix, this->root_ );
 			return true;
 		}
-		else{
-			starting_node = this->root_->nodeSearch(prefix, this->root_);
-			if(starting_node != nullptr){
+
+		else
+		{
+			starting_node = this->root_->nodeSearch( prefix, this->root_ );
+			if( starting_node != nullptr )
+			{
 				// Starting printing all the words above that node
-				starting_node->printAll(prefix, starting_node);
+				starting_node->printAll( prefix, starting_node );
 				return true;
 			}
 		}
@@ -70,5 +74,5 @@ TrieNode* Trie::getRoot()
 void Trie::setRoot( TrieNode *new_root )
 {
 	// Assign new_root as tree's root.
-		this->root_ = new_root;
+	this->root_ = new_root;
 }

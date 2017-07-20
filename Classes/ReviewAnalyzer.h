@@ -11,7 +11,9 @@
 
 // Libraries:
 #include <string>
+#include <utility>
 #include "StringHashTable.h"
+#include "Trie.h"
 
 
 class ReviewAnalyzer {
@@ -82,10 +84,11 @@ public:
 	 * Insert word in database.
 	 *  @param word Word to be inserted.
 	 *  @param phrase_score Word's score in the phrase.
+	 *  @param index Phrase's index.
 	 *  @param key Word's key in the hash table if found (optional).
 	 *  @return True if inserted, false if it's already in the database.
 	 */
-	bool insert( std::string word, double phrase_score, unsigned *key = nullptr );
+	bool insert( std::string word, double phrase_score, unsigned index, unsigned *key = nullptr );
 
 	/**
 	 * Search for a word in database.
@@ -118,6 +121,21 @@ public:
 	 *  @param rank_size How many words can be in the ranking list.
 	 */
 	void printMostFrequent( unsigned rank_size );
+
+	/**
+	 * Command "getr": create file <word>"_reviews.csv" containing all reviews where
+	 * a given word appears.
+	 *  @param word Word to search for.
+	 *  @return True if file was created, false otherwise.
+	 */
+	bool getReviews( std::string word );
+
+	/**
+	 * Command "search": search for words starting with given string, printing them.
+	 *  @param word Word or partial word to search for.
+	 *  @return True if a word has been found, false otherwise.
+	 */
+	bool searchWords( std::string word );
 
 private:
 	/**
@@ -153,12 +171,21 @@ private:
 	bool isStopword( std::string word );
 
 	/**
+	 * Store review and its score.
+	 *  @param review Review's text.
+	 *  @param score Review's score.
+	 *  @return Vector's index where this pair was inserted.
+	 */
+	unsigned storeReview( std::string review, unsigned score );
+
+	/**
 	 * Update words' score and ranking.
 	 *  @param satellite_data Word to be inserted or updated in ranking tree.
+	 *  @param index Review's index.
 	 *  @param new_score Satellite data's next score.
 	 *  @return True if there're any words to rank, false otherwise.
 	 */
-	void updateScore( StringHashData *satellite_data, double new_score = -1.0 );
+	void updateScore( StringHashData *satellite_data, unsigned index, double new_score = -1.0 );
 
 	/**
 	 * Create words's frequency ranking tree.
@@ -182,8 +209,14 @@ private:
 	AvlTree score_ranking_;
 	AvlTree frequency_ranking_;
 
+	// Trie Tree of words.
+	Trie words_;
+
 	// Stopwords to filter.
 	StringHashTable stopwords_;
+
+	// Reviews - pair< score, review >.
+	std::vector< std::pair< unsigned, std::string > > reviews_;
 };
 
 #endif /* REVIEWANALYZER_H_ */

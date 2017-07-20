@@ -106,11 +106,47 @@ int ReviewAnalyzer::run()
 			// If no argument was provided, print message.
 			if( file_name.empty() )
 				cout << "Command requires argument. Enter \"help\" to list commands." << endl;
-			// Otherwise, call "read" command.
+			// Otherwise, call "analyzef" command.
 			else if( !analyzeFile( file_name ) )
 				cout << "Couldn't open file. Wrong file path or format." << endl;
 			else
 				cout << "Success." << endl;
+		}
+
+		// If command is "getr".
+		else if( command == "getr" )
+		{
+			// Read argument (word).
+			string word = readArgument();
+
+			// Change word to lowercase.
+			changeToLowercase( word );
+
+			// If no argument was provided, print message.
+			if( word.empty() )
+				cout << "Command requires argument. Enter \"help\" to list commands." << endl;
+			// Otherwise, call "getr" command.
+			else if( !getReviews( word ) )
+				cout << "There's no occurrence of \"" << word << "\" in our database." << endl;
+			else
+				cout << "Success." << endl;
+		}
+
+		// If command is "search".
+		else if( command == "search" )
+		{
+			// Read argument (prefix).
+			string prefix = readArgument();
+
+			// Change prefix to lowercase.
+			changeToLowercase( prefix );
+
+			// If no argument was provided, print message.
+			if( prefix.empty() )
+				cout << "Command requires argument. Enter \"help\" to list commands." << endl;
+			// Otherwise, call "search" command.
+			else if( !searchWords( prefix ) )
+				cout << "There's no word starting with \"" << prefix << "\" in our database." << endl;
 		}
 
 		// If command is "print+":
@@ -219,7 +255,7 @@ int ReviewAnalyzer::run()
 		else if( command == "exit" || command == "quit" )
 		{
 			// Print message.
-			cout << "Program ended successfully." << endl;
+			cout << "Ending program..." << endl;
 		}
 
 		// If command is invalid, print message.
@@ -250,7 +286,8 @@ std::string ReviewAnalyzer::readCommand()
 	// Validate command.
 	if( command == "analyze" || command == "help" || command == "read" ||
 			command == "print+" || command == "print-" || command == "printf" ||
-			command == "analyzef" || command == "exit" || command == "quit" )
+			command == "analyzef" || command == "getr" || command == "search" ||
+			command == "exit" || command == "quit" )
 	{
 		// Command is valid.
 		return command;
@@ -301,18 +338,20 @@ void ReviewAnalyzer::printCommands()
 
 	// Print command and description.
 	cout <<  "read      <filename>  : read file and store words in database\n"
-			<< "analyze   <text>      : analyzes the overall emotion of <text>\n"
-			<< "analyzef  <filename>  : analyzes reviews from <filename>\n"
+			<< "analyze   <text>      : analyze the overall emotion of <text>\n"
+			<< "analyzef  <filename>  : analyze reviews from <filename>\n"
+			<< "search    <prefix>    : search for words starting with <prefix>\n"
 			<< "print+    <amount>    : print <amount> most positive words in database\n"
 			<< "print-    <amount>    : print <amount> most negative words in database\n"
 			<< "printf    <amount>    : print <amount> most frequent words in database\n"
+			<< "getr      <word>      : create file listing all reviews where <word> appears\n"
 			<< "help                  : print list of commands\n"
 			<< "exit                  : ends program\n"
 			<< "--  End of list  --"
 			<< endl;
 }
 
-bool ReviewAnalyzer::readFile( std::string file_name )		// TODO: exception handling for wrong format.
+bool ReviewAnalyzer::readFile( std::string file_name )
 {
 	// Add ".txt" to file_name if user didn't write it.
 	string extension;
@@ -340,7 +379,7 @@ bool ReviewAnalyzer::readFile( std::string file_name )		// TODO: exception handl
 	cout << "Reading file..." << endl;
 
 	// Review's overall feeling.
-	double feeling;
+	double score;
 	// Review's text.
 	string review;
 
@@ -357,10 +396,12 @@ bool ReviewAnalyzer::readFile( std::string file_name )		// TODO: exception handl
 
 		// Read feeling's number.
 		if( extension == ".txt" )
-			file >> feeling;
+			file >> score;
 
 		// Read review.
 		getline( file, review );
+		// Store review.
+		unsigned index = storeReview( review, score );
 
 		// FOR KAGGLE ONLY: Get score by converting ASCII to integer.
 		//string score_num;
@@ -386,15 +427,15 @@ bool ReviewAnalyzer::readFile( std::string file_name )		// TODO: exception handl
 			line >> word;
 
 			// Change word to lowercase.
-			changeToLowercase( word );		// TODO: [2.2] IMPROVEMENT OVER WORDS WITH UPPERCASE LETTERS
+			changeToLowercase( word );
 
 			// Filter punctuation characters and concatenated words.
 			if( !word.empty() && filterWord( word ) )
 			{
 				// Insert word and get its key.
-				insert( word, feeling, &key );
+				insert( word, score, index, &key );
 				// Update word's score.
-				updateScore( getSatelliteData( key ), feeling );
+				updateScore( getSatelliteData( key ), index, score );
 			}
 		}
 	}
@@ -424,10 +465,10 @@ bool ReviewAnalyzer::analyze( std::string review, double *score, bool print )
 		text >> word;
 
 		// Change word to lowercase.
-		changeToLowercase( word );			// TODO: [2.2] IMPROVEMENT OVER WORDS WITH UPPERCASE LETTERS
+		changeToLowercase( word );
 
 		// If it passes by the filter and it is in the database:
-		if( filterWord( word ) && search( word, &key ) )			// TODO: filterWord() may return two words in next version.
+		if( filterWord( word ) && search( word, &key ) )
 		{
 			// Indicate so.
 			has_word = true;
@@ -498,7 +539,7 @@ bool ReviewAnalyzer::analyzeFile( std::string file_name, bool print )
 		file_name = file_name + ".tsv";
 
 	// Print message.
-	cout << "Attempting to open file \"" << file_name << "\".\n";
+	cout << "Attempting to open file \"" << file_name << "\"." << endl;
 
 	// File to be read.
 	ifstream input_file;
@@ -510,7 +551,7 @@ bool ReviewAnalyzer::analyzeFile( std::string file_name, bool print )
 		return false;
 
 	// Print message.
-	cout << "Analyzing reviews...\n";
+	cout << "Analyzing reviews..." << endl;
 
 	// ID of phrase.
 	unsigned phrase_id;
@@ -561,14 +602,20 @@ bool ReviewAnalyzer::analyzeFile( std::string file_name, bool print )
 	return true;
 }
 
-bool ReviewAnalyzer::insert( std::string word, double phrase_score, unsigned *key )
+bool ReviewAnalyzer::insert( std::string word, double phrase_score, unsigned index, unsigned *key )
 {
+	// Insert word in Trie Tree to search for prefix.
+	this->words_.insert( word );
+
 	// Insert word in database.
-	return this->database_.insert( word, phrase_score, key );
+	return this->database_.insert( word, phrase_score, index, key );
 }
 
 bool ReviewAnalyzer::search( std::string word, unsigned *key )
 {
+	// Change word to lowercase.
+	changeToLowercase( word );
+
 	// Search for word in database.
 	return this->database_.search( word, key );
 }
@@ -600,6 +647,56 @@ void ReviewAnalyzer::printMostFrequent( unsigned rank_size )
 	cout << "--  End of ranking   --" << endl;
 }
 
+bool ReviewAnalyzer::getReviews( std::string word )
+{
+	// Word's index in hash table.
+	unsigned key;
+
+	// Change word to lowercase.
+	changeToLowercase( word );
+
+	if( search( word, &key ) )
+	{
+		// Print message.
+		cout << "Listing reviews..." << endl;
+
+		// Output file.
+		ofstream file( word + "_review.csv" );
+
+		// Data from hash table.
+		StringHashData *word_data = getSatelliteData( key );
+
+		// Output word and its score.
+		file << "Word: " << word << '\n'
+				<< fixed << setprecision( 2 )
+				<< "Score: " << word_data->getScore() << '\n' << endl;
+
+		// Word's reviews.
+		vector< unsigned > indexes = word_data->getIndexes();
+
+		// Output each review where word appears to file.
+		for( auto index : indexes )
+		{
+			// Output review's score.
+			file << this->reviews_.at( index ).first << ' ';
+			// Output review's text.
+			file << this->reviews_.at( index ).second << endl;
+		}
+
+		file.close();
+		return true;
+	}
+
+	// Word not found.
+	return false;
+}
+
+bool ReviewAnalyzer::searchWords( std::string word )
+{
+	// Search for word, printing words found.
+	return this->words_.search( word );
+}
+
 StringHashData* ReviewAnalyzer::getSatelliteData( unsigned key )
 {
 	// Return data at position key.
@@ -612,12 +709,12 @@ bool ReviewAnalyzer::filterWord( std::string &word )
 	if( word.empty() || word.at( 0 ) == '.' || word.at( 0 ) == ',' || word.at( 0 ) == ';' ||
 			word.at( 0 ) == ':' || word.at( 0 ) == '\"' || word.at( 0 ) == '?' ||
 			word.at( 0 ) == '!' || word.at( 0 ) == '-' || word.at( 0 ) == '\'' ||
-			word.at( 0 ) == '\t' || word.at( 0 ) == '\n' || word.at( 0 ) == ' ' )	// TODO: any more punctuation marks?
+			word.at( 0 ) == '\t' || word.at( 0 ) == '\n' || word.at( 0 ) == ' ' )
 	{
 		return false;
 	}
 	// If word is a stopword, it can't be inserted.
-	else if( isStopword( word ) )			// TODO: [2.2] IMPROVEMENT OVER STOPWORDS
+	else if( isStopword( word ) )
 		return false;
 
 	// Otherwise, it can be inserted.
@@ -652,7 +749,7 @@ bool ReviewAnalyzer::readStopwords( std::string file_name )
 		file >> stopword;
 
 		// Insert it in hash table.
-		this->stopwords_.insert( stopword, 0 );
+		this->stopwords_.insert( stopword, 0, 0 );
 	}
 
 	// Close file.
@@ -668,7 +765,19 @@ bool ReviewAnalyzer::isStopword( std::string word )
 	return this->stopwords_.search( word );
 }
 
-void ReviewAnalyzer::updateScore( StringHashData *satellite_data, double new_score )
+unsigned ReviewAnalyzer::storeReview( std::string review, unsigned score )
+{
+	// Create pair< score, review >.
+	pair< unsigned, std::string > review_pair( score, review );
+
+	// Put pair into vector.
+	this->reviews_.push_back( review_pair );
+
+	// Return index.
+	return this->reviews_.size() - 1;
+}
+
+void ReviewAnalyzer::updateScore( StringHashData *satellite_data, unsigned index, double new_score )
 {
 	// If new_score is negative (standard argument), satellite_data isn't in the tree
 	// and must be inserted.
@@ -679,7 +788,7 @@ void ReviewAnalyzer::updateScore( StringHashData *satellite_data, double new_sco
 	else if( this->score_ranking_.search( satellite_data ) )
 	{
 		this->score_ranking_.remove( satellite_data );
-		satellite_data->recalculateScore( new_score );
+		satellite_data->recalculateScore( new_score, index );
 		this->score_ranking_.insert( satellite_data );
 	}
 

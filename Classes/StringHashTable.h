@@ -27,11 +27,12 @@ public:
 	 * Insert string in hash table at given index.
 	 *  @param word Word to be inserted.
 	 *  @param phrase_score Word's score in the phrase.
+	 *  @param index Phrase's index.
 	 *  @param key Word's key in the hash table if found (optional).
 	 *  @return True if inserted, false otherwise.
 	 *  @attention May call solveCollision() or rehash() methods.
 	 */
-	bool insert( std::string word, double phrase_score, unsigned *key = nullptr );
+	bool insert( std::string word, double phrase_score, unsigned index, unsigned *key = nullptr );
 
 	/**
 	 * Search for given string in hash table.
